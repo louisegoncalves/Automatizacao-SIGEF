@@ -14,9 +14,21 @@ BIBLIOTECAS
 1.	Instalar pelo Prompt de Comando (CMD).
 
 pip install pyautogui
+
+
 pip install openpyxl
+
+
 pip install keyboard
+
+
 pip install playwright
+
+
 pip install pytest-playwright
+
+
 pip install re
+
+
 playwright install
