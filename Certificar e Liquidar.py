@@ -94,7 +94,6 @@ with sync_playwright() as p:
             
         #LOCALIZANDO O IFRAME:
         frame = guia.frame_locator('iframe[src="/SIGEF2025/SEG/#/SEGControleAcesso?p=1"]')
-
         
         if robo_deve_parar:
             if book:
@@ -108,18 +107,13 @@ with sync_playwright() as p:
         pesquisar_funcionalidades_sistema.press_sequentially("Manter Despesa Certificada")
         funcionalidade_sistema = frame.get_by_title("Manter Despesa Certificada")
         
-
-
-
         with guia.expect_popup() as popup_info:
             funcionalidade_sistema.click()
-
             manter_despesa_certificada = popup_info.value
         
         while loop == True:
 
             coluna = 1
-
             #LENDO A UG
             for row in pagina.iter_rows(min_row=linha,max_col=coluna,max_row=linha):
                 for cell in row:
@@ -252,8 +246,7 @@ with sync_playwright() as p:
                     cpf = cpf_formatado
                 except:
                     time.sleep(0)    
-            
-            
+                   
             if nome != "None":
                 print("Estou na linha " + str(linha) + " da planilha, referente ao servidor " + str(nome) + ".")
             else:
@@ -265,9 +258,7 @@ with sync_playwright() as p:
                     break
 
             if despesa_certificada == "None":
-                
                 ja_foi_certificado = False
-                
                 if ja_foi_certificado == False:
                     texto_da_ce =  "Certificação de Despesa: Pagamento para o(a) servidor(a) " + str(cpf) + " " + str(nome) + " referente à " + str(operacao) + " realizada no período de " + str(data) + ". Processo Administrativo n: " + str(processo) + "."
                     texto_da_ce = texto_da_ce.replace('ç','c')
@@ -286,12 +277,11 @@ with sync_playwright() as p:
                         pyautogui.alert(text='Tecla ESC acionada. Automacao encerrada', title='Tecla de Panico Acionada', button='OK')
                         sys.exit()
 
-                        
                     #INFORMAÇÕES PRELIMINARES
                     #DATA DE HOJE:
                     data_atual = date.today() 
                     data_de_baixa = data_atual.strftime("%d/%m/%Y")
-                        #HORA:
+                    #HORA:
                     agora = datetime.now()
                     hora = agora.strftime("%H:%M:%S")
                     manter_despesa_certificada.wait_for_load_state('networkidle', timeout=30000)
@@ -341,16 +331,10 @@ with sync_playwright() as p:
                             preencher_cpf.press_sequentially(cpf)
                             time.sleep(0.5)
                             botao_confirmar = selecionar_favorecido.get_by_role("button", name="Confirmar a Consulta")
-
                             botao_confirmar.click()
-
-
                             selecionar_favorecido.wait_for_load_state('networkidle', timeout=30000)
                             localizar_funcao = selecionar_favorecido.get_by_text("* CPF")
                             localizar_funcao.wait_for()
-
- 
-                            
                             try:
                                 codigo = selecionar_favorecido.get_by_role("cell", name=cpf, exact=True)
                                 codigo.wait_for()
@@ -363,7 +347,7 @@ with sync_playwright() as p:
                                         
                                         # É crucial esperar que esta âncora apareça
                                         primeira_celula_cpf.wait_for(timeout=10000)
-                                        print(f"Célula âncora encontrada com o texto: '{primeira_celula_cpf.inner_text()}'")
+                                        print("Célula âncora encontrada com o texto: " + primeira_celula_cpf.inner_text())
 
                                         # --- PASSO 2: A PARTIR DA ÂNCORA, NAVEGAR ATÉ A LINHA PAI ---
                                         # O XPath '..' significa "vá para o elemento pai".
@@ -375,18 +359,37 @@ with sync_playwright() as p:
                                         celula_nome_credor = linha_correta.locator("td").nth(1)
                                         
                                         nome_completo_na_tela = celula_nome_credor.inner_text()
+                                        nome_completo_na_tela = nome_completo_na_tela.upper()
                                         
                                         # --- PASSO 4: VALIDAR E AGIR ---
                                         primeiro_nome_na_tela = ""
                                         if nome_completo_na_tela and nome_completo_na_tela.strip():
                                             primeiro_nome_na_tela = nome_completo_na_tela.strip().split()[0]
-                                            
-                                        print(f"Primeiro nome esperado: '{primeiro_nome}'")
-                                        print(f"Primeiro nome encontrado na tela: '{primeiro_nome_na_tela}'")
+                                            primeiro_nome_na_tela = primeiro_nome_na_tela.replace('Ç','C')
+                                            primeiro_nome_na_tela = primeiro_nome_na_tela.replace('Ã','A')
+                                            primeiro_nome_na_tela = primeiro_nome_na_tela.replace('Á','A')
+                                            primeiro_nome_na_tela = primeiro_nome_na_tela.replace('À','A')
+                                            primeiro_nome_na_tela = primeiro_nome_na_tela.replace('Í','I')
+                                            primeiro_nome_na_tela = primeiro_nome_na_tela.replace('Ô','O')
+                                            primeiro_nome_na_tela = primeiro_nome_na_tela.replace('Ô','O')
+                                            primeiro_nome_na_tela = primeiro_nome_na_tela.replace('É','E')
+
+                                            primeiro_nome = primeiro_nome.upper()
+                                            primeiro_nome = primeiro_nome.replace('Ç','C')
+                                            primeiro_nome = primeiro_nome.replace('Ã','A')
+                                            primeiro_nome = primeiro_nome.replace('À','A')
+                                            primeiro_nome = primeiro_nome.replace('Á','A')
+                                            primeiro_nome = primeiro_nome.replace('Í','I')
+                                            primeiro_nome = primeiro_nome.replace('Ô','O')
+                                            primeiro_nome = primeiro_nome.replace('Õ','O')
+                                            primeiro_nome = primeiro_nome.replace('É','E')                   
+
+                                        print("Primeiro nome esperado: " + primeiro_nome)
+                                        print("Primeiro nome encontrado na tela: " + primeiro_nome_na_tela)
                                         
                                         if primeiro_nome_na_tela.upper() == primeiro_nome.upper():
                                             
-                                            print("Validação: Esperado '{primeiro_nome}', encontrado '{primeiro_nome_na_tela}'.")
+                                            print("Validação: Esperado " + primeiro_nome + " , encontrado " + primeiro_nome_na_tela + ".")
                                             print("[SUCESSO] Validação confirmada!")
                                             
                                             # Clicamos na linha inteira para selecionar
@@ -395,7 +398,7 @@ with sync_playwright() as p:
                                             
                                         else:
                                             print("[ERRO DE VALIDAÇÃO] O nome não corresponde ao esperado!")
-                                            raise Exception(f"Validação falhou: Esperado '{primeiro_nome}', encontrado '{primeiro_nome_na_tela}'.")
+                                            raise Exception('Validação falhou: Esperado ' + primeiro_nome + " , encontrado " + primeiro_nome_na_tela + ".")
                                             
 
                                 except Exception as e:
@@ -860,34 +863,23 @@ with sync_playwright() as p:
                                 sys.exit()
                             
                             botao_confirmar.click()
-                            liquidar_despesa_certificada.wait_for_load_state('networkidle', timeout=30000)
                             
-                            try:
-                                liquidar_despesa_certificada.get_by_text("Não é permitido liquidar da")
-                                botao_voltar = liquidar_despesa_certificada.get_by_role("button", name="Retornar à Tela Anterior")
-                                botao_voltar.click()
-                                liquidar_despesa_certificada.wait_for_load_state('networkidle', timeout=30000)
                             
-                            except:
-                                print("Liquidação já foi feita.")
+                            #try:
+                                #erro = liquidar_despesa_certificada.get_by_text("Não é permitido liquidar da")
+                                #if erro:
+                                    #botao_voltar = liquidar_despesa_certificada.get_by_role("button", name="Retornar à Tela Anterior")
+                                    #botao_voltar.click()
+                            #except:
+                                #time.sleep(0.3)
 
-                            
                             try:
+                                liquidar_despesa_certificada.wait_for_load_state('networkidle', timeout=30000)
                                 print("Procurando pela célula da Nota de Liquidação (NL)...")
 
-                                # --- A MÁGICA ACONTECE AQUI ---
-                                # Criamos um padrão que significa: "Começa com '2025NL' seguido por 6 dígitos numéricos"
                                 padrao_da_nl = re.compile(r"^2025NL\d{6}$")
-
-                                # Passamos esse padrão para o localizador
-                                # Ele vai encontrar qualquer NL que corresponda ao padrão, não importa o número.
-                                celula_nl = liquidar_despesa_certificada.get_by_role("cell", name=padrao_da_nl)
-
-                                # --- O QUE FAZER A SEGUIR ---
-                                # CUIDADO: Se houver VÁRIAS NLs na página, isso ainda dará um erro de "strict mode".
-                                # Nesse caso, você pode pegar a primeira ou a última:
                                 
-                                # Para pegar a PRIMEIRA NL que aparecer:
+                                celula_nl = liquidar_despesa_certificada.get_by_role("cell", name=padrao_da_nl)
                                 primeira_nl = celula_nl.first
                                 primeira_nl.dblclick()
                                 primeira_nl.press('Control+KeyC')
