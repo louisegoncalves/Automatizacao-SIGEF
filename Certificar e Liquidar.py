@@ -385,30 +385,21 @@ with sync_playwright() as p:
                                         print(f"Primeiro nome encontrado na tela: '{primeiro_nome_na_tela}'")
                                         
                                         if primeiro_nome_na_tela.upper() == primeiro_nome.upper():
+                                            
+                                            print("Validação: Esperado '{primeiro_nome}', encontrado '{primeiro_nome_na_tela}'.")
                                             print("[SUCESSO] Validação confirmada!")
                                             
                                             # Clicamos na linha inteira para selecionar
-                                            linha_correta.click()
+                                            codigo.click()
                                             print("Credor selecionado com sucesso.")
                                             
                                         else:
                                             print("[ERRO DE VALIDAÇÃO] O nome não corresponde ao esperado!")
                                             raise Exception(f"Validação falhou: Esperado '{primeiro_nome}', encontrado '{primeiro_nome_na_tela}'.")
+                                            
 
                                 except Exception as e:
                                         print(f"Ocorreu um erro durante a validação do credor: {e}")
-
-
-                                print(primeiro_nome_na_tela)
-                                print(primeiro_nome)
-
-
-                                if primeiro_nome_na_tela == primeiro_nome:
-                                    print('value_primeiro_nome == primeiro_nome')
-                            
-                                selecionar_favorecido.pause()   
-                                    
-                                codigo.click()
                             
                             except:
                                 print("Não encontrei o CPF")
@@ -447,7 +438,6 @@ with sync_playwright() as p:
                         if documento_ja_cadastrado:
                             print("\n[AVISO] O documento já foi cadastrado anteriormente.")
                             print("O robô vai pular este item ou tomar uma ação alternativa.")
-                            print(documento_ja_cadastrado)
                         else:
                             print("\n[SUCESSO] Nenhuma mensagem de erro encontrada.")
                             print("Continuando com o fluxo normal da automação...")
