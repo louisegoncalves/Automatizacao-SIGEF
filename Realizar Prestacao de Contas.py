@@ -16,6 +16,7 @@ import openpyxl
 import keyboard
 from datetime import date
 from datetime import datetime
+import time
 
 #VARIÁVEIS IMPORTANTES
 limite = 500
@@ -61,6 +62,7 @@ with sync_playwright() as p:
         #Geralmente, a primeira página do primeiro contexto é a que queremos.
         janela = browser.contexts[0]
         guia = janela.pages[0]
+
 
         #VERIFICAR A PÁGINA ABERTA:
         print(f"Assumindo o controle da página com o título: '{guia.title()}'")
@@ -299,30 +301,50 @@ with sync_playwright() as p:
                             exit()
                         print('1 PASSO: Prestacao de contas ' + prestacao_contas + ' do credor ' + credor + '.')
                         operacao.select_option(label="Entregue")
+                        time.sleep(0.3)
                         observacao.press_sequentially("1º Passo: Entregue. Prestação de Contas de " + instrumento + ", Natureza da Despesa: " + natureza + ", em nome do Credor " + credor + ", Despesa Certificada: " + despesa_certificada + ", Nota Liquidação: " + nota_liquidacao + ", Preparação de Pagamento: " + preparacao_pagamento + ", Nota de Empenho: " + nota_empenho + ".")
                         botao_confirmar = realizar_prestacao_contas.get_by_role("button", name="Confirmar a Operação")
                         botao_confirmar.wait_for()
                         botao_confirmar.click()
-                        realizar_prestacao_contas.wait_for_load_state('networkidle', timeout=30000)
-                        caixa_mensagem_sucesso = realizar_prestacao_contas.locator(".SIGEFMensagemSucesso")
-                        caixa_mensagem_sucesso.wait_for(timeout=10000)
-                        texto_completo = caixa_mensagem_sucesso.inner_text()
-                        if "O número gerado foi" in texto_completo:
-                            numero_nl = texto_completo.split("foi ")[1]
-                            numero_nl = numero_nl.strip('.')
-                        botao_consultar = realizar_prestacao_contas.get_by_role("button", name="Consultar o Registro")
-                        botao_consultar.wait_for()
-                        botao_consultar.click()
-                        realizar_prestacao_contas.wait_for_load_state('networkidle', timeout=30000)
+                        realizar_prestacao_contas.wait_for_load_state('networkidle', timeout=30000)      
+                        try:
+                            caixa_mensagem_sucesso = realizar_prestacao_contas.locator(".SIGEFMensagemSucesso")
+                            caixa_mensagem_sucesso.wait_for(timeout=10000)
+                            texto_completo1 = caixa_mensagem_sucesso.inner_text()
+                            if "O número gerado foi" in texto_completo1:
+                                numero_nl = texto_completo1.split("foi ")[1]
+                                numero_nl = numero_nl.strip('.')
+                            botao_consultar = realizar_prestacao_contas.get_by_role("button", name="Consultar o Registro")
+                            botao_consultar.wait_for()
+                            botao_consultar.click()
+                            realizar_prestacao_contas.wait_for_load_state('networkidle', timeout=30000)
+                        except:
+                            try:
+                                caixa_mensagem_sucesso = realizar_prestacao_contas.locator(".SIGEFMensagemSucesso")
+                                caixa_mensagem_sucesso.wait_for(timeout=10000)
+                                texto_completo1 = caixa_mensagem_sucesso.inner_text()
+                                if "O número gerado foi" in texto_completo1:
+                                    numero_nl = texto_completo1.split("foi ")[1]
+                                    numero_nl = numero_nl.strip('.')
+                                botao_consultar = realizar_prestacao_contas.get_by_role("button", name="Consultar o Registro")
+                                botao_consultar.wait_for()
+                                botao_consultar.click()
+                                realizar_prestacao_contas.wait_for_load_state('networkidle', timeout=30000)
+                            except:
+                                botao_consultar = realizar_prestacao_contas.get_by_role("button", name="Consultar o Registro")
+                                botao_consultar.wait_for()
+                                botao_consultar.click()
                         if robo_deve_parar:
                             numero_nl2 = "Não foi feita!"
                             if book:
                                 print("Garantindo que a planilha seja fechada...")
                                 pagina.append([unidade_gestora,gestao,credor,nota_empenho,nota_liquidacao,preparacao_pagamento,valor,numero_nl,numero_nl2,data_de_baixa,hora,instrumento, natureza,prestacao_contas])
-                                book.save()
+                                book.save('Planilha de Baixas.xlsx')
                                 book.close()
                             pyautogui.alert(text='Tecla ESC acionada. Automacao encerrada', title='Tecla de Panico Acionada', button='OK')
                             exit()
+
+
                     
                     if situacao == 'Entregue':
                         if robo_deve_parar:
@@ -330,13 +352,14 @@ with sync_playwright() as p:
                             if book:
                                 print("Garantindo que a planilha seja fechada...")
                                 pagina.append([unidade_gestora,gestao,credor,nota_empenho,nota_liquidacao,preparacao_pagamento,valor,numero_nl,numero_nl2,data_de_baixa,hora,instrumento, natureza,prestacao_contas])
-                                book.save()
+                                book.save('Planilha de Baixas.xlsx')
                                 book.close()
                             pyautogui.alert(text='Tecla ESC acionada. Automacao encerrada', title='Tecla de Panico Acionada', button='OK')
                             exit()
                         print('2 PASSO: Prestacao de contas ' + prestacao_contas + ' do credor ' + credor + '.')
                         operacao = realizar_prestacao_contas.locator("#cboOperacao")
                         operacao.select_option(label="Em Análise")
+                        time.sleep(0.3)
                         observacao.press_sequentially("2º Passo: Em Análise. Prestação de Contas de " + instrumento + ", Natureza da Despesa: " + natureza + ", em nome do Credor " + credor + ", Despesa Certificada: " + despesa_certificada + ", Nota Liquidação: " + nota_liquidacao + ", Preparação de Pagamento: " + preparacao_pagamento + ", Nota de Empenho: " + nota_empenho + ".")
                         botao_confirmar = realizar_prestacao_contas.get_by_role("button", name="Confirmar a Operação")
                         botao_confirmar.wait_for()
@@ -351,22 +374,24 @@ with sync_playwright() as p:
                             if book:
                                 print("Garantindo que a planilha seja fechada...")
                                 pagina.append([unidade_gestora,gestao,credor,nota_empenho,nota_liquidacao,preparacao_pagamento,valor,numero_nl,numero_nl2,data_de_baixa,hora,instrumento, natureza,prestacao_contas])
-                                book.save()
+                                book.save('Planilha de Baixas.xlsx')
                                 book.close()
                             pyautogui.alert(text='Tecla ESC acionada. Automacao encerrada', title='Tecla de Panico Acionada', button='OK')
                             exit()
+                    
                     if situacao == 'Em Análise':
                         if robo_deve_parar:
                             numero_nl2 = "Não foi feita!"
                             if book:
                                 print("Garantindo que a planilha seja fechada...")
                                 pagina.append([unidade_gestora,gestao,credor,nota_empenho,nota_liquidacao,preparacao_pagamento,valor,numero_nl,numero_nl2,data_de_baixa,hora,instrumento, natureza,prestacao_contas])
-                                book.save()
+                                book.save('Planilha de Baixas.xlsx')
                                 book.close()
                             exit()
                         print('3 PASSO: Prestacao de contas ' + prestacao_contas + ' do credor ' + credor + '.')
                         operacao = realizar_prestacao_contas.locator("#cboOperacao")
                         operacao.select_option(label="Baixa Regular")
+                        time.sleep(0.3)
                         observacao.press_sequentially("3º Passo: Baixa Regular. Prestação de Contas de " + instrumento + ", Natureza da Despesa: " + natureza + ", em nome do Credor " + credor + ", Despesa Certificada: " + despesa_certificada + ", Nota Liquidação: " + nota_liquidacao + ", Preparação de Pagamento: " + preparacao_pagamento + ", Nota de Empenho: " + nota_empenho + ".")
                         botao_confirmar = realizar_prestacao_contas.get_by_role("button", name="Confirmar a Operação")
                         botao_confirmar.wait_for()
@@ -375,15 +400,43 @@ with sync_playwright() as p:
                             if book:
                                 print("Garantindo que a planilha seja fechada...")
                                 pagina.append([unidade_gestora,gestao,credor,nota_empenho,nota_liquidacao,preparacao_pagamento,valor,numero_nl,numero_nl2,data_de_baixa,hora,instrumento, natureza,prestacao_contas])
-                                book.save()
+                                book.save('Planilha de Baixas.xlsx')
                                 book.close()
                             pyautogui.alert(text='Tecla ESC acionada. Automacao encerrada', title='Tecla de Panico Acionada', button='OK')
                             exit()
                         botao_confirmar.click()
-                        if "O número gerado foi" in texto_completo:
-                            numero_nl2 = texto_completo.split("foi ")[1]
-                            numero_nl2 = numero_nl.strip('.')
 
+                        try:
+                            caixa_mensagem_sucesso = realizar_prestacao_contas.locator(".SIGEFMensagemSucesso")
+                            caixa_mensagem_sucesso.wait_for(timeout=10000)
+                            texto_completo2 = caixa_mensagem_sucesso.inner_text()
+                            if "O número gerado foi" in texto_completo2:
+                                numero_nl2 = texto_completo2.split("foi ")[1]
+                                numero_nl2 = numero_nl2.strip('.')
+                            botao_consultar = realizar_prestacao_contas.get_by_role("button", name="Consultar o Registro")
+                            botao_consultar.wait_for()
+                            botao_consultar.click()
+                            realizar_prestacao_contas.wait_for_load_state('networkidle', timeout=30000)
+                        except:
+                            try:
+                                caixa_mensagem_sucesso = realizar_prestacao_contas.locator(".SIGEFMensagemSucesso")
+                                caixa_mensagem_sucesso.wait_for(timeout=10000)
+                                texto_completo2 = caixa_mensagem_sucesso.inner_text()
+                                if "O número gerado foi" in texto_completo2:
+                                    numero_nl2 = texto_completo2.split("foi ")[1]
+                                    numero_nl2 = numero_nl2.strip('.')
+                                botao_consultar = realizar_prestacao_contas.get_by_role("button", name="Consultar o Registro")
+                                botao_consultar.wait_for()
+                                botao_consultar.click()
+                                realizar_prestacao_contas.wait_for_load_state('networkidle', timeout=30000)
+                            except:
+                                botao_consultar = realizar_prestacao_contas.get_by_role("button", name="Consultar o Registro")
+                                botao_consultar.wait_for()
+                                botao_consultar.click()
+                        
+                        if texto_completo1==texto_completo2:
+                            numero_nl2 = 'Erro.'
+                        
                         botao_consultar = realizar_prestacao_contas.get_by_role("button", name="Consultar o Registro")
                         botao_consultar.wait_for()
                         botao_consultar.click()
@@ -394,12 +447,17 @@ with sync_playwright() as p:
                             if book:
                                 print("Garantindo que a planilha seja fechada...")
                                 pagina.append([unidade_gestora,gestao,credor,nota_empenho,nota_liquidacao,preparacao_pagamento,valor,numero_nl,numero_nl2,data_de_baixa,hora,instrumento, natureza,prestacao_contas])
-                                book.save()
+                                book.save('Planilha de Baixas.xlsx')
                                 book.close()
                             pyautogui.alert(text='Tecla ESC acionada. Automacao encerrada', title='Tecla de Panico Acionada', button='OK')
                             exit()
-
+                        
                     if situacao == 'Baixa Regular':  
+                        baixa = baixa + 1
+                        print('Número de Notas Lançamento geradas: ' + numero_nl +' e ' + numero_nl2)
+                        print('Fiz ' + baixa + " até aqui. Prosseguindo para a próxima...")
+                        pagina.append([unidade_gestora,gestao,credor,nota_empenho,nota_liquidacao,preparacao_pagamento,valor,numero_nl,numero_nl2,data_de_baixa,hora,instrumento,natureza,prestacao_contas])
+                        book.save('Planilha de Baixas.xlsx')
                         botao_limpar = realizar_prestacao_contas.get_by_role("link", name="Limpar a Tela")
                         botao_limpar.click()
                         realizar_prestacao_contas.wait_for_load_state('networkidle', timeout=30000)
@@ -408,19 +466,8 @@ with sync_playwright() as p:
                                 print("Garantindo que a planilha seja fechada...")
                                 book.close()
                             pyautogui.alert(text='Tecla ESC acionada. Automacao encerrada', title='Tecla de Panico Acionada', button='OK')
-                            exit()
-
-                try:
-                    pagina.append([unidade_gestora,gestao,credor,nota_empenho,nota_liquidacao,preparacao_pagamento,valor,numero_nl,numero_nl2,data_de_baixa,hora,instrumento, natureza,prestacao_contas])
-                    book.save("Planilha de Baixas.xlsx")
-                    print("Realizada a Prestação de Contas do Credor " + credor + ". Foram emitidos os documentos " + numero_nl + " e " + numero_nl2 + ".")
-                    baixa = baixa + 1
-                    print("Número de baixas realizadas: " + str(baixa) + ". Prosseguinto para a próxima...")
-                except:
-                    numero_nl = 'Erro'
-                    numero_nl2 ='Erro'
-                    print("Algum erro encontrado na hora de dar baixa. Informações não foram salvas!")
-   
+                            exit()                       
+                        
     except TimeoutError:
         print("\nERRO: Timeout! Não foi possível encontrar um elemento a tempo.")
         if book:
