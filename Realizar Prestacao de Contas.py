@@ -83,7 +83,7 @@ with sync_playwright() as p:
             pesquisar_funcionalidades_sistema.press("Control+KeyA+Backspace")
             pesquisar_funcionalidades_sistema.press_sequentially("Realizar Prestação de Contas")
             funcionalidade_sistema = frame.get_by_title("Realizar Prestação de Contas")
-            funcionalidade_sistema.click()
+            
         
         #COM A JANELA "REALIZAR PRESTAÇÃO DE CONTAS" ABERTA...
         #ESSE COMANDO É ESSENCIAL
@@ -91,6 +91,7 @@ with sync_playwright() as p:
 
             
             with guia.expect_popup() as popup_info:
+                funcionalidade_sistema.click()
                 realizar_prestacao_contas = popup_info.value
                 realizar_prestacao_contas.wait_for_load_state('networkidle', timeout=30000)
             
@@ -105,21 +106,21 @@ with sync_playwright() as p:
                 pyautogui.alert(text='Tecla ESC acionada. Automacao encerrada', title='Tecla de Panico Acionada', button='OK')
                 exit()
 
-            
             if baixas <= limite:
-                ug = pyautogui.prompt(text='Digite a UG', title='Unidade Gestora' , default='150001')
-                gestao = pyautogui.prompt(text='Digite a Gestão', title='Gestão' , default='00001')
-                empenho = pyautogui.prompt(text='Digite o número da Nota de Empenho', title='Nota de Empenho' , default='0')
-                exercicio = pyautogui.confirm(text='Escolha o Exercício Financeiro', title='Exercício Financeiro' , buttons=['2024', '2025'])
-                
-                unidade_gestora = str(ug)
-                gestao = str(gestao)
-                exercicio_financeiro = str(exercicio)
-                numero_empenho = str(empenho)
+                #ug = pyautogui.prompt(text='Digite a UG', title='Unidade Gestora' , default='150001')
+                #gestao = pyautogui.prompt(text='Digite a Gestão', title='Gestão' , default='00001')
+                #empenho = pyautogui.prompt(text='Digite o número da Nota de Empenho', title='Nota de Empenho' , default='0')
+                #exercicio = pyautogui.confirm(text='Escolha o Exercício Financeiro', title='Exercício Financeiro' , buttons=['2024', '2025'])
+                #unidade_gestora = str(input('Digite a UG: '))
+                #gestao = str(input('Digite a Gestão: '))
+                #numero_empenho = str(input('Digite o número da Nota de Empenho: '))
+                #exercicio_financeiro = str(input('Digite o Exercício Financeiro: '))
+                unidade_gestora = '150001'
+                gestao = '00001'
+                numero_empenho = '154'
+                exercicio_financeiro = '2025'
             else:
                 pyautogui.alert(text='Deu algum erro.', title='Erro', button='OK')
-            
-
 
             while baixas <= limite:
                 # --- PONTO DE VERIFICAÇÃO NO INÍCIO DO LOOP ---
@@ -144,6 +145,7 @@ with sync_playwright() as p:
                         book.close()
                     pyautogui.alert(text='Tecla ESC acionada. Automacao encerrada', title='Tecla de Panico Acionada', button='OK')
                     exit()
+                
                 preencher_unidade_gestora = realizar_prestacao_contas.locator("#txtUnidadeGestora")
                 preencher_unidade_gestora.wait_for()
                 preencher_unidade_gestora.dblclick()
@@ -152,8 +154,8 @@ with sync_playwright() as p:
                 preencher_gestao = realizar_prestacao_contas.locator("#txtGestao_SIGEFPesquisa")
                 preencher_gestao.press_sequentially(gestao)
                 ponto_interrogacao = realizar_prestacao_contas.locator("#txtPrestacaoContas2_lnkBtnPesquisa")
-                ponto_interrogacao.click()
                 with realizar_prestacao_contas.expect_popup() as popup_info:
+                    ponto_interrogacao.click()
                     # --- PONTO DE VERIFICAÇÃO NO INÍCIO DO LOOP ---
                     if robo_deve_parar:
                         if book:
@@ -165,6 +167,7 @@ with sync_playwright() as p:
                     selecionar_prestacao_contas.wait_for_load_state('networkidle', timeout=30000)
                     preencher_numero_empenho = selecionar_prestacao_contas.locator("#txtNotaEmpenho2_SIGEFPesquisa")
                     preencher_numero_empenho.wait_for()
+                    time.sleep(0.3)
                     preencher_numero_empenho.dblclick()
                     preencher_numero_empenho.press('Delete')
                     preencher_numero_empenho.press_sequentially(numero_empenho)
@@ -177,9 +180,8 @@ with sync_playwright() as p:
                     botao_confirmar = selecionar_prestacao_contas.get_by_role("button", name="Confirmar a Consulta")
                     botao_confirmar.click()
                     try:
-                        selecionar_prestacao_contas.wait_for_load_state()
+                        selecionar_prestacao_contas.wait_for_load_state('networkidle', timeout=30000)
                         locator_candidatos = selecionar_prestacao_contas.get_by_role("cell", name="2025PC", exact=False)
-                        
                         todos_os_textos = locator_candidatos.all_inner_texts()
                         numeros_pc = []
                         for texto in todos_os_textos:
@@ -407,6 +409,7 @@ with sync_playwright() as p:
                         botao_confirmar.click()
 
                         try:
+                            time.sleep(0.3)
                             caixa_mensagem_sucesso = realizar_prestacao_contas.locator(".SIGEFMensagemSucesso")
                             caixa_mensagem_sucesso.wait_for(timeout=10000)
                             texto_completo2 = caixa_mensagem_sucesso.inner_text()
