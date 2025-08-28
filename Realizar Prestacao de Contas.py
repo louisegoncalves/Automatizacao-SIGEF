@@ -20,7 +20,7 @@ import time
 
 #VARIÁVEIS IMPORTANTES
 limite = 500
-baixa = 0
+baixas = 0
 robo_deve_parar = False
 numero_nl = None
 numero_nl2 = None
@@ -78,7 +78,7 @@ with sync_playwright() as p:
             pyautogui.alert(text='Tecla ESC acionada. Automacao encerrada', title='Tecla de Panico Acionada', button='OK')
             exit()
         
-        if baixa <= limite:
+        if baixas <= limite:
             pesquisar_funcionalidades_sistema = frame.get_by_placeholder("Pesquisar funcionalidades do sistema...")
             pesquisar_funcionalidades_sistema.press("Control+KeyA+Backspace")
             pesquisar_funcionalidades_sistema.press_sequentially("Realizar Prestação de Contas")
@@ -106,7 +106,7 @@ with sync_playwright() as p:
                 exit()
 
             
-            if baixa <= limite:
+            if baixas <= limite:
                 ug = pyautogui.prompt(text='Digite a UG', title='Unidade Gestora' , default='150001')
                 gestao = pyautogui.prompt(text='Digite a Gestão', title='Gestão' , default='00001')
                 empenho = pyautogui.prompt(text='Digite o número da Nota de Empenho', title='Nota de Empenho' , default='0')
@@ -121,7 +121,7 @@ with sync_playwright() as p:
             
 
 
-            while baixa <= limite:
+            while baixas <= limite:
                 # --- PONTO DE VERIFICAÇÃO NO INÍCIO DO LOOP ---
                 if robo_deve_parar:
                     if book:
@@ -190,7 +190,7 @@ with sync_playwright() as p:
                         if not numeros_pc:
                             raise Exception("Nenhum número de PC válido foi encontrado na lista de células.")
                             selecionar_prestacao_contas.close()
-                            baixa = 999999999999999
+                            baixas = 999999999999999
                             break
 
                         menor_numero = min(numeros_pc)
@@ -201,7 +201,7 @@ with sync_playwright() as p:
                     except Exception as e:
                         print(f"\nOcorreu um erro ao tentar selecionar a PC: {e}")
                         selecionar_prestacao_contas.close()
-                        baixa = 999999999999999
+                        baixas = 999999999999999
                         break
                 
                 realizar_prestacao_contas.wait_for_load_state('networkidle', timeout=30000)
@@ -453,13 +453,14 @@ with sync_playwright() as p:
                             exit()
                         
                     if situacao == 'Baixa Regular':  
-                        baixa = baixa + 1
-                        print('Número de Notas Lançamento geradas: ' + numero_nl +' e ' + numero_nl2)
-                        print('Fiz ' + baixa + " até aqui. Prosseguindo para a próxima...")
+                        baixas = baixas + 1
+                        numero_de_baixa = str(baixas)
+                        print('Número de Notas Lançamento geradas: ' + numero_nl +' e ' + numero_nl2 + '.')
                         pagina.append([unidade_gestora,gestao,credor,nota_empenho,nota_liquidacao,preparacao_pagamento,valor,numero_nl,numero_nl2,data_de_baixa,hora,instrumento,natureza,prestacao_contas])
                         book.save('Planilha de Baixas.xlsx')
                         botao_limpar = realizar_prestacao_contas.get_by_role("link", name="Limpar a Tela")
                         botao_limpar.click()
+                        print('Fiz ' + numero_de_baixa +  ' baixas até aqui. Prosseguindo para a próxima...')
                         realizar_prestacao_contas.wait_for_load_state('networkidle', timeout=30000)
                         if robo_deve_parar:
                             if book:
