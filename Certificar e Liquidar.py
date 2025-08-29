@@ -806,11 +806,11 @@ with sync_playwright() as p:
                                 selecionar_empenho = popup_info.value
                                 selecionar_empenho.wait_for_load_state('networkidle', timeout=30000)
                                 preencher_empenho = selecionar_empenho.locator("#txtNotaEmpenhoNumero")
-                                preencher_empenho.press_sequentially(empenho)
+                                preencher_empenho.press_sequentially(str(empenho))
                                 botao_confirmar = selecionar_empenho.get_by_role("button", name="Confirmar a Consulta")
                                 botao_confirmar.click()
                                 selecionar_empenho.wait_for_load_state('networkidle', timeout=30000)
-                                nota_empenho = selecionar_empenho.get_by_role("cell", name=empenho, exact=True)
+                                nota_empenho = selecionar_empenho.get_by_role("cell", name=nota_de_empenho, exact=True)
                                 nota_empenho.wait_for()
                                 nota_empenho.click()
                                 
@@ -913,4 +913,5 @@ if book:
     book.close()
 print("\nScript finalizado. A janela de depuracao permanece aberta.")
 keyboard.remove_hotkey(tecla_de_panico) 
+
 pyautogui.alert(text='Encerrei por aqui.', title='Fim', button='OK')
