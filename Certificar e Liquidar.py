@@ -1,8 +1,7 @@
 #OLÁ!
-#PROCEDIMENTO: REALIZAR PRESTAÇÃO DE CONTAS;
+#PROCEDIMENTO: CERTIFICAR E LIQUIDAR;
 #POR: LOUISE-SESDEC;
-#ALTERAÇÕES NO CÓDIGO PODEM SER ACESSADAS NO MEU DRIVE: <https://drive.google.com/drive/folders/1TMJkn2RBNvG7LNMlEWmTFi0uw9w5a1eA?usp=drive_link>.
-
+#ALTERAÇÕES NO CÓDIGO PODEM SER ACESSADAS NO MEU GITHUB: <https://github.com/louisegoncalves/Automatizacao-SIGEF>.
 
 #INSTRUÇÕES
 #ATENÇÃO: É OBRIGATÓRIO ABRIR O DEPURADOR DO GOOGLE CHROME PARA EXECUTAR ESSE CÓDIGO
@@ -23,6 +22,10 @@ import sys
 
 #VARIÁVEIS IMPORTANTES
 robo_deve_parar = False
+coluna = 1
+linha = 2
+loop = True
+despesa_certificada_teste = 'None'
 
 #PLANILHA NO EXCEL:
 try:
@@ -35,48 +38,46 @@ try:
     pagina5 = book['Saída']
 except: 
     pyautogui.alert(text='Deu algum erro na planilha.', title='Erro', button='OK')
-
-coluna = 1
-linha = 2
-loop = True
+    sys.exit()
 
 #SE QUISER DESATIVAR AQUELA JANELA DO COMEÇO PODE EXCLUIR ELA AQUI:
 pyautogui.alert(text='Procedimento: Certificar e liquidar.', title='Início', button='OK')
-                
-print("Iniciando!")
 
-    # --- FUNÇÃO QUE SERÁ CHAMADA PELA HOTKEY ---
+#FUNÇÃO QUE SERÁ CHAMADA PELA TECLA DE PANICO
 def parar_execucao():
     global robo_deve_parar
     print("\n!!! TECLA ESC ACIONADA! ENCERRANDO AUTOMACAO !!!")
     robo_deve_parar = True
 
-    # --- DEFINA SUA TECLA DE ATALHO ---
-    # Vamos usar 'k' como você sugeriu. 'esc' também é uma ótima opção.
+#FUNÇÃO QUE ENCERRA O CODIGO E FECHA A PLANILHA COM SEGURANÇA
+#A PLANILHA DEVE SEMPRE SER FECHADA ANTES DE ENCERRAR, POIS CORRE O RISCO DE CORROMPER
+def verificar_panico_e_sair(workbook):
+    global robo_deve_parar
+    if robo_deve_parar:
+        print("Garantindo que a planilha seja fechada...")
+        if workbook:
+            workbook.close()
+        pyautogui.alert('Tecla ESC acionada. Automação encerrada.')
+        sys.exit()
+
+#DEFINA SUA TECLA DE PÂNICO
 tecla_de_panico = "Esc" 
 keyboard.add_hotkey(tecla_de_panico, parar_execucao)
-print(f"--- Robô iniciado. Pressione a tecla '{tecla_de_panico}' a qualquer momento para abortar com seguranca. ---")
+print(f"Robô iniciado. Pressione a tecla '{tecla_de_panico}' a qualquer momento para abortar com seguranca.")
 
+#AQUI ELE VAI PEDIR PARA ABRIR O SIGEF PELO DEPURADOR DO GOOGLE
 pyautogui.confirm(text='Aperte OK quando o SIGEF estiver logado no depurador do Google Chrome', title='Depurador do Chrome' , buttons=['OK'])
-despesa_certificada_teste = 'None'
+
 #PORTA DO DEPURADOR DO GOOGLE CHROME
 CHROME_DEBUG_URL = "http://localhost:9222"
 
-
 if robo_deve_parar:
-    if book:
-        print("Garantindo que a planilha seja fechada...")
-        book.close()
-    pyautogui.alert(text='Tecla ESC acionada. Automacao encerrada', title='Tecla de Panico Acionada', button='OK')
-    sys.exit()
+    verificar_panico_e_sair(book)
 
+#EXECUTANDO O PLAYWRIGHT DE FORMA SÍNCRONA
 with sync_playwright() as p:
         if robo_deve_parar:
-            if book:
-                print("Garantindo que a planilha seja fechada...")
-                book.close()
-            pyautogui.alert(text='Tecla ESC acionada. Automacao encerrada', title='Tecla de Panico Acionada', button='OK')
-            sys.exit()
+            verificar_panico_e_sair(book)
 
         #CONECTAR AO NAVEGADOR JÁ ABERTO:
         print(f"Tentando se conectar ao Chrome na porta de depuração: {CHROME_DEBUG_URL}")
@@ -96,12 +97,10 @@ with sync_playwright() as p:
         frame = guia.frame_locator('iframe[src="/SIGEF2025/SEG/#/SEGControleAcesso?p=1"]')
         
         if robo_deve_parar:
-            if book:
-                print("Garantindo que a planilha seja fechada...")
-                book.close()
-            pyautogui.alert(text='Tecla ESC acionada. Automacao encerrada', title='Tecla de Panico Acionada', button='OK')
-            sys.exit()
-
+            verificar_panico_e_sair(book)
+        
+        #INÍCIO                
+        print("Iniciando!")
         pesquisar_funcionalidades_sistema = frame.get_by_placeholder("Pesquisar funcionalidades do sistema...")
         pesquisar_funcionalidades_sistema.press("Control+KeyA+Backspace")
         pesquisar_funcionalidades_sistema.press_sequentially("Manter Despesa Certificada")
@@ -114,6 +113,7 @@ with sync_playwright() as p:
         while loop == True:
 
             coluna = 1
+            
             #LENDO A UG
             for row in pagina.iter_rows(min_row=linha,max_col=coluna,max_row=linha):
                 for cell in row:
@@ -133,18 +133,6 @@ with sync_playwright() as p:
                 for cell in row:
                     processo = cell.value
                     processo = str(processo)
-
-            processo_cortado = processo
-            processo_cortado = re.sub('[./-]','',processo_cortado)
-            myString = processo
-            myString = myString.replace("/",".")
-            myString = myString.replace("-",".")
-            myString = str(myString)
-            myList = myString.partition('.')
-            myString = str(myList[2])
-            myList = myString.partition('.')
-            processo_cortado = str(myList[0])
-            processo_cortado = str(myList[0])+ "-"+str(linha-1)
             
             #LENDO O NOME DO SERVIDOR
             coluna = coluna + 1
@@ -164,7 +152,6 @@ with sync_playwright() as p:
             #LENDO O VALOR
             coluna = coluna + 1
             for row in pagina.iter_rows(min_row=linha,max_col=coluna,max_row=linha):                
-                
                 for cell in row:
                     valor = cell.value
                     valor = str(valor)
@@ -242,7 +229,14 @@ with sync_playwright() as p:
             
             if cpf != "None":
                 try:
-                    cpf_formatado = re.sub(r'(\d{3})(\d{3})(\d{3})(\d{2})', r'\1.\2.\3-\4', "{:011d}".format(int(cpf)))                   
+                    if isinstance(cpf,str):
+                        cpf = cpf.replace('.','')
+                        cpf = cpf.replace('-','')
+                        cpf_sem_ponto_virgula = int(cpf)
+                    else: 
+                        print('CPF é inválido.')
+    
+                    cpf_formatado = re.sub(r'(\d{3})(\d{3})(\d{3})(\d{2})', r'\1.\2.\3-\4', "{:011d}".format(int(cpf_sem_ponto_virgula)))                        
                     cpf = cpf_formatado
                 except:
                     time.sleep(0)    
@@ -256,11 +250,44 @@ with sync_playwright() as p:
                 if valor == "None":
                     loop = False
                     break
+            
+            if isinstance(processo,str):
+                processo = processo.replace('.','')
+                processo = processo.replace('-','')
+                processo = processo.replace('/','')
+                processo_sem_pontos = int(processo)
+            else: 
+                print('Processo é inválido.')
+            
+            processo_formatado = re.sub(r'(\d{4})(\d{6})(\d{4})(\d{2})', r'\1.\2/\3-\4', "{:016d}".format(int(processo_sem_pontos))) 
+            
+            try:
+                exercicio = int(exercicio)
+            except:
+                try:
+                    empenho = int(empenho)
+                except:
+                    exercicio = str(exercicio)
+                    empenho = str(empenho)
+
+            if isinstance(empenho,str):
+                empenho = empenho.upper()
+                exercicio = empenho.strip().split('NE')[0]
+                empenho = empenho.strip().split('NE')[1]
+                exercicio = int(exercicio)
+                empenho = int(empenho)
+                exercicio_NE = str(exercicio) + "NE"
+                nota_de_empenho = re.sub(r'(\d{4})(\d{6})', r'\1NE\2', "{:010d}".format((empenho)))
+                nota_de_empenho = nota_de_empenho.replace('0000NE',exercicio_NE)
+            else: 
+                exercicio_NE = str(exercicio) + "NE"
+                nota_de_empenho = re.sub(r'(\d{4})(\d{6})', r'\1NE\2', "{:010d}".format((empenho)))
+                nota_de_empenho = nota_de_empenho.replace('0000NE',exercicio_NE)
 
             if despesa_certificada == "None":
                 ja_foi_certificado = False
                 if ja_foi_certificado == False:
-                    texto_da_ce =  "Certificação de Despesa: Pagamento para o(a) servidor(a) " + str(cpf) + " " + str(nome) + " referente à " + str(operacao) + " realizada no período de " + str(data) + ". Processo Administrativo n: " + str(processo) + "."
+                    texto_da_ce =  "Certificação de Despesa: Pagamento para o(a) servidor(a) " + str(cpf_formatado) + " " + str(nome) + " referente à " + str(operacao) + " realizada no período de " + str(data) + ". Processo Administrativo n: " + str(processo_formatado) + "."
                     texto_da_ce = texto_da_ce.replace('ç','c')
                     texto_da_ce = texto_da_ce.replace('ã','a')
                     texto_da_ce = texto_da_ce.replace('á','a')
@@ -271,18 +298,19 @@ with sync_playwright() as p:
                     texto_da_ce = texto_da_ce.replace('é','e')
 
                     if robo_deve_parar:
-                        if book:
-                            print("Garantindo que a planilha seja fechada...")
-                            book.close()
-                        pyautogui.alert(text='Tecla ESC acionada. Automacao encerrada', title='Tecla de Panico Acionada', button='OK')
-                        sys.exit()
+                        verificar_panico_e_sair(book)
 
                     #INFORMAÇÕES PRELIMINARES
+                    #AQUI SELECIONAMOS O NÚMERO DO MEIO DO PROCESSO:
+                    processo_cortado = processo_formatado.strip().split('/')[0]
+                    processo_cortado = processo_formatado.strip().split('.')[1]
                     #DATA DE HOJE:
                     data_atual = date.today() 
+                    #FORMATAR A DATA:
                     data_de_baixa = data_atual.strftime("%d/%m/%Y")
                     #HORA:
                     agora = datetime.now()
+                    #FORMATAR A HORA:
                     hora = agora.strftime("%H:%M:%S")
                     manter_despesa_certificada.wait_for_load_state('networkidle', timeout=30000)
                     time.sleep(0.1)
@@ -328,7 +356,7 @@ with sync_playwright() as p:
                             botao_cpf.click()
                             preencher_cpf = selecionar_favorecido.get_by_role("textbox")
                             preencher_cpf.wait_for()
-                            preencher_cpf.press_sequentially(cpf)
+                            preencher_cpf.press_sequentially(cpf_sem_ponto_virgula)
                             time.sleep(0.5)
                             botao_confirmar = selecionar_favorecido.get_by_role("button", name="Confirmar a Consulta")
                             botao_confirmar.click()
@@ -336,62 +364,57 @@ with sync_playwright() as p:
                             localizar_funcao = selecionar_favorecido.get_by_text("* CPF")
                             localizar_funcao.wait_for()
                             try:
-                                codigo = selecionar_favorecido.get_by_role("cell", name=cpf, exact=True)
+                                codigo = selecionar_favorecido.get_by_role("cell", name=cpf_formatado, exact=True)
                                 codigo.wait_for()
                                 
                                 try:
-                                        padrao_cpf = re.compile(r"\d{3}\.\d{3}\.\d{3}-\d{2}")
+                                    padrao_cpf = re.compile(r"\d{3}\.\d{3}\.\d{3}-\d{2}")
     
-                                        # Encontramos a primeira célula que corresponde a este padrão
-                                        primeira_celula_cpf = selecionar_favorecido.get_by_text(padrao_cpf).first
+                                    #AQUI ENCONTRAMOS A PRIMEIRA CÉLULA QUE CORRESPONDE AO PADRÃO DO CPF:
+                                    primeira_celula_cpf = selecionar_favorecido.get_by_text(padrao_cpf).first
                                         
-                                        # É crucial esperar que esta âncora apareça
-                                        primeira_celula_cpf.wait_for(timeout=10000)
-                                        print("Célula âncora encontrada com o texto: " + primeira_celula_cpf.inner_text())
+                                    #É crucial esperar que esta âncora apareça
+                                    primeira_celula_cpf.wait_for(timeout=10000)
+                                    print("Célula âncora encontrada com o texto: " + primeira_celula_cpf.inner_text())
 
-                                        # --- PASSO 2: A PARTIR DA ÂNCORA, NAVEGAR ATÉ A LINHA PAI ---
-                                        # O XPath '..' significa "vá para o elemento pai".
-                                        # O pai de uma célula (<td>) é a sua linha (<tr>).
-                                        linha_correta = primeira_celula_cpf.locator("xpath=..")
+                                    # --- PASSO 2: A PARTIR DA ÂNCORA, NAVEGAR ATÉ A LINHA PAI ---
+                                    # O XPath '..' significa "vá para o elemento pai".
+                                    # O pai de uma célula (<td>) é a sua linha (<tr>).
+                                    linha_correta = primeira_celula_cpf.locator("xpath=..")
                                         
-                                        # --- PASSO 3: DA LINHA, NAVEGAR ATÉ A CÉLULA DO NOME ---
-                                        # Agora que temos a linha correta, pegamos a segunda célula (índice 1)
-                                        celula_nome_credor = linha_correta.locator("td").nth(1)
+                                    # --- PASSO 3: DA LINHA, NAVEGAR ATÉ A CÉLULA DO NOME ---
+                                    # Agora que temos a linha correta, pegamos a segunda célula (índice 1)
+                                    celula_nome_credor = linha_correta.locator("td").nth(1)
                                         
-                                        nome_completo_na_tela = celula_nome_credor.inner_text()
-                                        nome_completo_na_tela = nome_completo_na_tela.upper()
+                                    nome_completo_na_tela = celula_nome_credor.inner_text()
+                                    nome_completo_na_tela = nome_completo_na_tela.upper()
                                         
-                                        # --- PASSO 4: VALIDAR E AGIR ---
-                                        primeiro_nome_na_tela = ""
-                                        if nome_completo_na_tela and nome_completo_na_tela.strip():
-                                            primeiro_nome_na_tela = nome_completo_na_tela.strip().split()[0]
-                                            primeiro_nome_na_tela = primeiro_nome_na_tela.replace('Ç','C')
-                                            primeiro_nome_na_tela = primeiro_nome_na_tela.replace('Ã','A')
-                                            primeiro_nome_na_tela = primeiro_nome_na_tela.replace('Á','A')
-                                            primeiro_nome_na_tela = primeiro_nome_na_tela.replace('À','A')
-                                            primeiro_nome_na_tela = primeiro_nome_na_tela.replace('Í','I')
-                                            primeiro_nome_na_tela = primeiro_nome_na_tela.replace('Ô','O')
-                                            primeiro_nome_na_tela = primeiro_nome_na_tela.replace('Ô','O')
-                                            primeiro_nome_na_tela = primeiro_nome_na_tela.replace('É','E')
-
-                                            primeiro_nome = primeiro_nome.upper()
-                                            primeiro_nome = primeiro_nome.replace('Ç','C')
-                                            primeiro_nome = primeiro_nome.replace('Ã','A')
-                                            primeiro_nome = primeiro_nome.replace('À','A')
-                                            primeiro_nome = primeiro_nome.replace('Á','A')
-                                            primeiro_nome = primeiro_nome.replace('Í','I')
-                                            primeiro_nome = primeiro_nome.replace('Ô','O')
-                                            primeiro_nome = primeiro_nome.replace('Õ','O')
-                                            primeiro_nome = primeiro_nome.replace('É','E')                   
-
+                                    # --- PASSO 4: VALIDAR E AGIR ---
+                                    primeiro_nome_na_tela = ""
+                                    if nome_completo_na_tela and nome_completo_na_tela.strip():
+                                        primeiro_nome_na_tela = nome_completo_na_tela.strip().split()[0]
+                                        primeiro_nome_na_tela = primeiro_nome_na_tela.replace('Ç','C')
+                                        primeiro_nome_na_tela = primeiro_nome_na_tela.replace('Ã','A')
+                                        primeiro_nome_na_tela = primeiro_nome_na_tela.replace('Á','A')
+                                        primeiro_nome_na_tela = primeiro_nome_na_tela.replace('À','A')
+                                        primeiro_nome_na_tela = primeiro_nome_na_tela.replace('Í','I')
+                                        primeiro_nome_na_tela = primeiro_nome_na_tela.replace('Ô','O')
+                                        primeiro_nome_na_tela = primeiro_nome_na_tela.replace('Ô','O')
+                                        primeiro_nome_na_tela = primeiro_nome_na_tela.replace('É','E')
+                                        primeiro_nome = primeiro_nome.upper()
+                                        primeiro_nome = primeiro_nome.replace('Ç','C')
+                                        primeiro_nome = primeiro_nome.replace('Ã','A')
+                                        primeiro_nome = primeiro_nome.replace('À','A')
+                                        primeiro_nome = primeiro_nome.replace('Á','A')
+                                        primeiro_nome = primeiro_nome.replace('Í','I')
+                                        primeiro_nome = primeiro_nome.replace('Ô','O')
+                                        primeiro_nome = primeiro_nome.replace('Õ','O')
+                                        primeiro_nome = primeiro_nome.replace('É','E')                   
                                         print("Primeiro nome esperado: " + primeiro_nome)
                                         print("Primeiro nome encontrado na tela: " + primeiro_nome_na_tela)
-                                        
                                         if primeiro_nome_na_tela.upper() == primeiro_nome.upper():
-                                            
                                             print("Validação: Esperado " + primeiro_nome + " , encontrado " + primeiro_nome_na_tela + ".")
                                             print("[SUCESSO] Validação confirmada!")
-                                            
                                             # Clicamos na linha inteira para selecionar
                                             codigo.click()
                                             print("Credor selecionado com sucesso.")
@@ -399,8 +422,7 @@ with sync_playwright() as p:
                                         else:
                                             print("[ERRO DE VALIDAÇÃO] O nome não corresponde ao esperado!")
                                             raise Exception('Validação falhou: Esperado ' + primeiro_nome + " , encontrado " + primeiro_nome_na_tela + ".")
-                                            
-
+                                        
                                 except Exception as e:
                                         print(f"Ocorreu um erro durante a validação do credor: {e}")
                             
@@ -411,8 +433,6 @@ with sync_playwright() as p:
                                     
                                 if not numeros_pc:
                                     raise Exception("Nenhum número de CPF válido foi encontrado na lista de células.")
-                                        
-                        
                     
                     manter_despesa_certificada.wait_for_load_state('networkidle', timeout=30000)
                     time.sleep(0.2)
@@ -453,7 +473,7 @@ with sync_playwright() as p:
 
                         despesa_certificada = "pesquisar no sigef"
                         pagina1.delete_rows(linha,1)
-                        pagina1.append([ug,gestao,processo,nome,cpf,valor,banco, agencia,conta,empenho,despesa_certificada])
+                        pagina1.append([ug,gestao,processo_formatado,nome,cpf_formatado,valor,banco, agencia,conta,nota_de_empenho,despesa_certificada])
                         book.save('Pagamentos.xlsx')   
                         
                     else:
@@ -463,8 +483,7 @@ with sync_playwright() as p:
                         numero_despesa_certificada.press("Control+KeyC")
                         numero_despesa_certificada = pyperclip.paste()
                         despesa_certificada = "2025CE" + str(numero_despesa_certificada)
-                         
-
+                    
                         if despesa_certificada_teste == despesa_certificada:
                             print("REPETIDO. Refazendo Despesa Certificada!")
                             pagina1.delete_rows(linha,1)
@@ -481,14 +500,12 @@ with sync_playwright() as p:
                                     time.sleep(0.1)
                                 else:
                                     pagina1.delete_rows(linha,1)
-                                    pagina1.append([ug,gestao,processo,nome,cpf,valor,banco, agencia,conta,empenho,despesa_certificada])
+                                    pagina1.append([ug,gestao,processo_formatado,nome,cpf_formatado,valor,banco, agencia,conta,nota_de_empenho,despesa_certificada])
                                     book.save('Pagamentos.xlsx')
                     
-
                     botao_limpar = manter_despesa_certificada.get_by_role("link", name="Limpar a Tela")
                     botao_limpar.click()
                     time.sleep(0.3)
-
 
             else:
                 ja_foi_certificado = True
@@ -497,17 +514,15 @@ with sync_playwright() as p:
                 despesa_certificada_teste = despesa_certificada 
                 linha = linha + 1
                 documento_ja_cadastrado = False
-
  
         print("Nenhuma despesa para certificar. Iniciando a liquidação...")
-
 
         ja_foi_certificado = True
         manter_despesa_certificada.close()
 
-    #################################################################
-    #A PARTIR DAQUI COMEÇA A LIQUIDAR
-    #################################################################
+#################################################################
+#A PARTIR DAQUI COMEÇA A LIQUIDAR
+#################################################################
 
         #PLANILHA NO EXCEL:
         try:
@@ -520,6 +535,7 @@ with sync_playwright() as p:
             pagina5 = book['Saída']
         except: 
             pyautogui.alert(text='Deu algum erro na planilha.', title='Erro', button='OK')
+            sys.exit()
 
         coluna = 1
         linha = 2
@@ -541,24 +557,12 @@ with sync_playwright() as p:
                     gestao = cell.value
                     gestao = str(gestao)
 
-                #LENDO O Nº DO PROCESSO
+            #LENDO O Nº DO PROCESSO
             coluna = coluna + 1
             for row in pagina.iter_rows(min_row=linha,max_col=coluna,max_row=linha):
                 for cell in row:
                     processo = cell.value
                     processo = str(processo)
-
-            processo_cortado = processo
-            processo_cortado = re.sub('[./-]','',processo_cortado)
-            myString = processo
-            myString = myString.replace("/",".")
-            myString = myString.replace("-",".")
-            myString = str(myString)
-            myList = myString.partition('.')
-            myString = str(myList[2])
-            myList = myString.partition('.')
-            processo_cortado = str(myList[0])
-            processo_cortado = str(myList[0])+ "-"+str(linha-1)
                 
             #LENDO O NOME DO SERVIDOR
             coluna = coluna + 1
@@ -596,7 +600,7 @@ with sync_playwright() as p:
                     agencia = cell.value
                     agencia = str(agencia)
 
-                #LENDO A CONTA CORRENTE
+            #LENDO A CONTA CORRENTE
             coluna = coluna + 1
             for row in pagina.iter_rows(min_row=linha,max_col=coluna,max_row=linha):
                 for cell in row:
@@ -617,7 +621,7 @@ with sync_playwright() as p:
                     despesa_certificada = cell.value
                     despesa_certificada = str(despesa_certificada)
 
-                #LENDO A NOTA DE LIQUIDAÇÃO
+            #LENDO A NOTA DE LIQUIDAÇÃO
             coluna = coluna + 1
             for row in pagina2.iter_rows(min_row=linha,max_col=coluna,max_row=linha):
                 for cell in row:
@@ -663,6 +667,55 @@ with sync_playwright() as p:
                     ja_foi_certificado = False
                     break
 
+            if cpf != "None":
+                try:
+                    if isinstance(cpf,str):
+                        cpf = cpf.replace('.','')
+                        cpf = cpf.replace('-','')
+                        cpf_sem_ponto_virgula = int(cpf)
+                    else: 
+                        print('CPF é inválido.')
+    
+                    cpf_formatado = re.sub(r'(\d{3})(\d{3})(\d{3})(\d{2})', r'\1.\2.\3-\4', "{:011d}".format(int(cpf_sem_ponto_virgula)))                        
+                    cpf = cpf_formatado
+                except:
+                    time.sleep(0)    
+
+            if isinstance(processo,str):
+                processo = processo.replace('.','')
+                processo = processo.replace('-','')
+                processo = processo.replace('/','')
+                processo_sem_pontos = int(processo)
+            else: 
+                print('Processo é inválido.')
+            
+            processo_formatado = re.sub(r'(\d{4})(\d{6})(\d{4})(\d{2})', r'\1.\2/\3-\4', "{:016d}".format(int(processo_sem_pontos))) 
+            
+            try:
+                exercicio = int(exercicio)
+            except:
+                try:
+                    empenho = int(empenho)
+                except:
+                    exercicio = str(exercicio)
+                    empenho = str(empenho)
+
+            if isinstance(empenho,str):
+                empenho = empenho.upper()
+                exercicio = empenho.strip().split('NE')[0]
+                empenho = empenho.strip().split('NE')[1]
+                exercicio = int(exercicio)
+                empenho = int(empenho)
+                exercicio_NE = str(exercicio) + "NE"
+                nota_de_empenho = re.sub(r'(\d{4})(\d{6})', r'\1NE\2', "{:010d}".format((empenho)))
+                nota_de_empenho = nota_de_empenho.replace('0000NE',exercicio_NE)
+            else: 
+                exercicio_NE = str(exercicio) + "NE"
+                nota_de_empenho = re.sub(r'(\d{4})(\d{6})', r'\1NE\2', "{:010d}".format((empenho)))
+                nota_de_empenho = nota_de_empenho.replace('0000NE',exercicio_NE)
+                empenho = nota_de_empenho.strip().split('NE')[1]
+                empenho = int(empenho)
+
             if despesa_certificada == "None":
                 ja_foi_certificado = False
             
@@ -675,10 +728,8 @@ with sync_playwright() as p:
                 else:
                     ja_foi_liquidado = True
     
-            
             if ja_foi_liquidado == False:
-
-                texto_da_nl =  "Liquidação de Despesa: Pagamento para o(a) servidor(a) " + str(cpf) + " " + str(nome) + " referente à " + str(operacao) + " realizada no período de " + str(data) + ". Processo Administrativo n: " + str(processo) + "."
+                texto_da_nl =  "Liquidação de Despesa: Pagamento para o(a) servidor(a) " + str(cpf_formatado) + " " + str(nome) + " referente à " + str(operacao) + " realizada no período de " + str(data) + ". Processo Administrativo n: " + str(processo_formatado) + "."
                 texto_da_nl = texto_da_nl.replace('ç','c')
                 texto_da_nl = texto_da_nl.replace('ã','a')
                 texto_da_nl = texto_da_nl.replace('á','a')
@@ -687,12 +738,10 @@ with sync_playwright() as p:
                 texto_da_nl = texto_da_nl.replace('ô','o')
                 texto_da_nl = texto_da_nl.replace('õ','o')
                 texto_da_nl = texto_da_nl.replace('é','e')
-
                 pesquisar_funcionalidades_sistema = frame.get_by_placeholder("Pesquisar funcionalidades do sistema...")
                 pesquisar_funcionalidades_sistema.press("Control+KeyA+Backspace")
                 pesquisar_funcionalidades_sistema.press_sequentially("Liquidar Despesa Certificada")
                 funcionalidade_sistema = frame.get_by_title("Liquidar Despesa Certificada")
-                
                     
                 with guia.expect_popup() as popup_info:
                     
@@ -713,11 +762,7 @@ with sync_playwright() as p:
                     campo_gestao = liquidar_despesa_certificada.locator("#txtCdGestao_SIGEFPesquisa")
 
                     if robo_deve_parar:
-                        if book:
-                            print("Garantindo que a planilha seja fechada...")
-                            book.close()
-                        pyautogui.alert(text='Tecla ESC acionada. Automacao encerrada', title='Tecla de Panico Acionada', button='OK')
-                        sys.exit()
+                        verificar_panico_e_sair(book)
 
                     campo_gestao.press_sequentially(gestao)
                     campo_despesa_certificada = liquidar_despesa_certificada.locator("#txtDespesaCertificadaNumero_SIGEFPesquisa")
@@ -727,45 +772,10 @@ with sync_playwright() as p:
                     botao_pesquisar.click()
                     
                     if robo_deve_parar:
-                        if book:
-                            print("Garantindo que a planilha seja fechada...")
-                            book.close()
-                        pyautogui.alert(text='Tecla ESC acionada. Automacao encerrada', title='Tecla de Panico Acionada', button='OK')
-                        sys.exit()
+                        verificar_panico_e_sair(book)
 
                     try:
-
-                            
                         print("Procurando pela célula da Nota de Liquidação (NL)...")
-
-                                # --- A MÁGICA ACONTECE AQUI ---
-                                # Criamos um padrão que significa: "Começa com '2025NL' seguido por 6 dígitos numéricos"
-                        #padrao_da_nl = re.compile(r"^2025NL\d{6}$")
-
-                                # Passamos esse padrão para o localizador
-                                # Ele vai encontrar qualquer NL que corresponda ao padrão, não importa o número.
-                        
-
-                                # --- O QUE FAZER A SEGUIR ---
-                                # CUIDADO: Se houver VÁRIAS NLs na página, isso ainda dará um erro de "strict mode".
-                                # Nesse caso, você pode pegar a primeira ou a última:
-                                
-                                # Para pegar a PRIMEIRA NL que aparecer:
-                        #try:
-                            #celula_nl = liquidar_despesa_certificada.get_by_role("cell", name=padrao_da_nl)
-                            #celula_nl.wait_for() 
-                            #print("NL encontrada!")
-                            #primeira_nl = celula_nl.first
-                            #primeira_nl.dblclick()
-                            #primeira_nl.press('Control+KeyC')
-                            #liquidacao = pyperclip.paste
-    
-                            #ja_foi_liquidado = True
-                            #print("A "+ despesa_certificada + " já foi liquidada. Indo para a próxima...")
-                            # ... faz algo com a NL ...
-                        #except TimeoutError:
-                            #print("NL não encontrada após longa espera.")
-
                     
                     except:
                         ja_foi_liquidado = False
@@ -773,11 +783,7 @@ with sync_playwright() as p:
                     if ja_foi_liquidado == False:
 
                         if robo_deve_parar:
-                            if book:
-                                print("Garantindo que a planilha seja fechada...")
-                                book.close()
-                            pyautogui.alert(text='Tecla ESC acionada. Automacao encerrada', title='Tecla de Panico Acionada', button='OK')
-                            sys.exit()
+                            verificar_panico_e_sair(book)
                         
                         data_vencimento = liquidar_despesa_certificada.locator("#txtDataVencimento_SIGEFData")
                         data_vencimento.press_sequentially('h')
@@ -791,20 +797,16 @@ with sync_playwright() as p:
 
                         if robo_deve_parar:
                             if book:
-                                print("Garantindo que a planilha seja fechada...")
-                                book.close()
-                            pyautogui.alert(text='Tecla ESC acionada. Automacao encerrada', title='Tecla de Panico Acionada', button='OK')
-                            sys.exit()
+                                verificar_panico_e_sair(book)
                         
                         with liquidar_despesa_certificada.expect_popup() as popup_info:
                                 ponto_interrogacao.click()
                                 if robo_deve_parar:
-                                    pyautogui.alert(text='Tecla ESC acionada. Automacao encerrada', title='Tecla de Panico Acionada', button='OK')
+                                    verificar_panico_e_sair(book)
                                 selecionar_empenho = popup_info.value
                                 selecionar_empenho.wait_for_load_state('networkidle', timeout=30000)
                                 preencher_empenho = selecionar_empenho.locator("#txtNotaEmpenhoNumero")
-                                ne = empenho.replace("2025NE","")
-                                preencher_empenho.press_sequentially(ne)
+                                preencher_empenho.press_sequentially(empenho)
                                 botao_confirmar = selecionar_empenho.get_by_role("button", name="Confirmar a Consulta")
                                 botao_confirmar.click()
                                 selecionar_empenho.wait_for_load_state('networkidle', timeout=30000)
@@ -825,19 +827,13 @@ with sync_playwright() as p:
                         nao_existem_retencoes.wait_for()
                         valor_liquido = liquidar_despesa_certificada.locator("#txtValorLiquidoId")
                         value_valor_liquido = valor_liquido.input_value()
-                    
-
                         
                         if value_valor_liquido == valor:
 
                             liquidar_despesa_certificada.wait_for_load_state('networkidle', timeout=30000)
                             
                             if robo_deve_parar:
-                                if book:
-                                    print("Garantindo que a planilha seja fechada...")
-                                    book.close()
-                                pyautogui.alert(text='Tecla ESC acionada. Automacao encerrada', title='Tecla de Panico Acionada', button='OK')
-                                sys.exit()
+                                verificar_panico_e_sair(book)
 
                             historico = liquidar_despesa_certificada.locator("#txtHistorico")
                             historico.wait_for()
@@ -846,63 +842,66 @@ with sync_playwright() as p:
                             historico.press_sequentially(texto_da_nl)
                             botao_confirmacao = liquidar_despesa_certificada.locator("#menun4").get_by_role("link")
                             if robo_deve_parar:
-                                if book:
-                                    print("Garantindo que a planilha seja fechada...")
-                                    book.close()
-                                pyautogui.alert(text='Tecla ESC acionada. Automacao encerrada', title='Tecla de Panico Acionada', button='OK')
-                                sys.exit()
+                                verificar_panico_e_sair(book)
+                            
                             botao_confirmacao.click()
 
                             botao_confirmar = liquidar_despesa_certificada.get_by_role("button", name="Confirmar a Operação")
                             
                             if robo_deve_parar:
-                                if book:
-                                    print("Garantindo que a planilha seja fechada...")
-                                    book.close()
-                                pyautogui.alert(text='Tecla ESC acionada. Automacao encerrada', title='Tecla de Panico Acionada', button='OK')
-                                sys.exit()
+                                verificar_panico_e_sair(book)
                             
-                            botao_confirmar.click()
-                            
-                            
-                            #try:
-                                #erro = liquidar_despesa_certificada.get_by_text("Não é permitido liquidar da")
-                                #if erro:
-                                    #botao_voltar = liquidar_despesa_certificada.get_by_role("button", name="Retornar à Tela Anterior")
-                                    #botao_voltar.click()
-                            #except:
-                                #time.sleep(0.3)
+                            try:
+                                botao_confirmar.click()
+                                print("Verificando a existência de mensagens de erro...")
+                                erro = liquidar_despesa_certificada.get_by_text("Não é permitido liquidar da")
+                                erro_esta_visivel = erro.is_visible()
+                                if erro_esta_visivel:
+                                    print("[AVISO] Mensagem de erro detectada: 'Não é permitido liquidar da'.")
+                                    botao_voltar = liquidar_despesa_certificada.get_by_role("button", name="Retornar à Tela Anterior")
+                                    botao_voltar.click()
+                                    documento_ja_liquidado_mas_nao_salvo = True
+                                else:
+                                    documento_ja_liquidado_mas_nao_salvo = False
+                                    print("[SUCESSO] Nenhuma mensagem de erro encontrada. Continuando o fluxo normal.")
+                            except Exception as e:
+                                print(f"Ocorreu um erro inesperado durante a liquidação: {e}")
 
                             try:
                                 liquidar_despesa_certificada.wait_for_load_state('networkidle', timeout=30000)
                                 print("Procurando pela célula da Nota de Liquidação (NL)...")
-
                                 padrao_da_nl = re.compile(r"^2025NL\d{6}$")
-                                
                                 celula_nl = liquidar_despesa_certificada.get_by_role("cell", name=padrao_da_nl)
-                                primeira_nl = celula_nl.first
-                                primeira_nl.dblclick()
-                                primeira_nl.press('Control+KeyC')
-                                liquidacao = pyperclip.paste
+                                celula_nl.first.wait_for(state="visible", timeout=30000)
+
+                                if celula_nl.count() > 0:
+                                    primeira_nl = celula_nl.first
+                                    liquidacao = primeira_nl.inner_text()
+                                    print(f"[SUCESSO] Nota de Liquidação encontrada e copiada: '{liquidacao}'")
+                                else:
+                                    liquidacao = "ERRO"
+                                    print("[AVISO] Nenhuma Nota de Liquidação foi encontrada na página.")
 
                             except Exception as e:
                                 print(f"Ocorreu um erro ao tentar localizar a NL: {e}")
-                            liquidacao = pyperclip.paste()
-                            liquidacao = str(liquidacao)
-                            pagina2.delete_rows(linha,1)
-                            pagina2.append([ug,gestao,processo,nome,cpf,valor,banco, agencia, conta,empenho,despesa_certificada,liquidacao])
-                            pagina5.delete_rows(linha,1)
-                            pagina5.append([ug,gestao,processo,nome,cpf,valor,banco, agencia, conta,empenho,despesa_certificada,liquidacao])
-                            book.save('Pagamentos.xlsx')
+                                liquidacao = "ERRO"
+
+                            if liquidacao != "ERRO":
+                                liquidacao = str(liquidacao) 
+                                print(f"Valor final da variável 'liquidacao': {liquidacao}")
+                                pagina2.delete_rows(linha,1)
+                                pagina2.append([ug,gestao,processo_formatado,nome,cpf_formatado,valor,banco, agencia, conta,nota_de_empenho,despesa_certificada,liquidacao])
+                                pagina5.delete_rows(linha,1)
+                                pagina5.append([ug,gestao,processo_formatado,nome,cpf_formatado,valor,banco, agencia, conta,nota_de_empenho,despesa_certificada,liquidacao])
+                                book.save('Pagamentos.xlsx')
                         else:
-                            print("deu algum erro!!")
+                            print("Deu algum erro!!")
                     else:
                             liquidacao = str(primeira_nl)
-                            print(liquidacao)
                             pagina2.delete_rows(linha,1)
-                            pagina2.append([ug,gestao,processo,nome,cpf,valor,banco, agencia, conta,empenho,despesa_certificada,liquidacao])
+                            pagina2.append([ug,gestao,processo_formatado,nome,cpf_formatado,valor,banco, agencia, conta,nota_de_empenho,despesa_certificada,liquidacao])
                             pagina5.delete_rows(linha,1)
-                            pagina5.append([ug,gestao,processo,nome,cpf,valor,banco, agencia, conta,empenho,despesa_certificada,liquidacao])
+                            pagina5.append([ug,gestao,processo_formatado,nome,cpf_formatado,valor,banco, agencia, conta,nota_de_empenho,despesa_certificada,liquidacao])
                             book.save('Pagamentos.xlsx')
 
                 liquidar_despesa_certificada.close()
@@ -912,7 +911,6 @@ with sync_playwright() as p:
 print("Fim das liquidações.")
 if book:
     book.close()
-pyautogui.alert(text='Terminei! :D', title='Encerrei por aqui!', button='OK')
 print("\nScript finalizado. A janela de depuracao permanece aberta.")
 keyboard.remove_hotkey(tecla_de_panico) 
 pyautogui.alert(text='Encerrei por aqui.', title='Fim', button='OK')
