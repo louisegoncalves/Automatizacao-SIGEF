@@ -387,9 +387,9 @@ with sync_playwright() as p:
 
                         try:
                             time.sleep(0.3)
-                            caixa_mensagem_sucesso = realizar_prestacao_contas.locator(".SIGEFMensagemSucesso")
-                            caixa_mensagem_sucesso.wait_for(timeout=10000)
-                            texto_completo2 = caixa_mensagem_sucesso.inner_text()
+                            caixa_mensagem_sucesso2 = realizar_prestacao_contas.locator(".SIGEFMensagemSucesso")
+                            caixa_mensagem_sucesso2.wait_for(timeout=10000)
+                            texto_completo2 = caixa_mensagem_sucesso2.inner_text()
                             if "O número gerado foi" in texto_completo2:
                                 numero_nl2 = texto_completo2.split("foi ")[1]
                                 numero_nl2 = numero_nl2.strip('.')
@@ -399,9 +399,9 @@ with sync_playwright() as p:
                             realizar_prestacao_contas.wait_for_load_state('networkidle', timeout=30000)
                         except:
                             try:
-                                caixa_mensagem_sucesso = realizar_prestacao_contas.locator(".SIGEFMensagemSucesso")
-                                caixa_mensagem_sucesso.wait_for(timeout=10000)
-                                texto_completo2 = caixa_mensagem_sucesso.inner_text()
+                                caixa_mensagem_sucesso2 = realizar_prestacao_contas.locator(".SIGEFMensagemSucesso")
+                                caixa_mensagem_sucesso2.wait_for(timeout=10000)
+                                texto_completo2 = caixa_mensagem_sucesso2.inner_text()
                                 if "O número gerado foi" in texto_completo2:
                                     numero_nl2 = texto_completo2.split("foi ")[1]
                                     numero_nl2 = numero_nl2.strip('.')

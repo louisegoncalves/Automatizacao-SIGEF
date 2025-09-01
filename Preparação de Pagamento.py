@@ -503,7 +503,7 @@ with sync_playwright() as p:
                     linha = linha + 1
                     print("Próximo!")
                              
-print("Fim das preparações.")
+print("Fim das preparações de Pagamento.")
 if book:
     book.close()
 print("\nScript finalizado. A janela de depuracao permanece aberta.") 
