@@ -96,22 +96,28 @@ with sync_playwright() as p:
         #LOCALIZANDO O IFRAME:
         frame = guia.frame_locator('iframe[src="/SIGEF2025/SEG/#/SEGControleAcesso?p=1"]')
         
+        #VERIFICAÇÃO DE PÂNICO:
         if robo_deve_parar:
             verificar_panico_e_sair(book)
         
         #INÍCIO                
         print("Iniciando!")
+
+        #PESQUISANDO FUNCIONALIDADE NO SIGEF
         pesquisar_funcionalidades_sistema = frame.get_by_placeholder("Pesquisar funcionalidades do sistema...")
         pesquisar_funcionalidades_sistema.press("Control+KeyA+Backspace")
         pesquisar_funcionalidades_sistema.press_sequentially("Manter Despesa Certificada")
         funcionalidade_sistema = frame.get_by_title("Manter Despesa Certificada")
         
+        #ABRINDO JANELA MANTER DESPESA CERTIFICADA:
         with guia.expect_popup() as popup_info:
             funcionalidade_sistema.click()
             manter_despesa_certificada = popup_info.value
         
+        #INÍCIO DO LOOP
         while loop == True:
-
+            
+            # A COLUNA SEMPRE DEVE REINICIAR NO INÍCIO DO LOOP
             coluna = 1
             
             #LENDO A UG
@@ -227,12 +233,14 @@ with sync_playwright() as p:
                     operacao = cell.value
                     operacao = str(operacao)
             
+            #FORMATANDO O CAMPO DA PLANILHA "CPF" NO MOLDE 000.000.000-00
+            #O RESULTADO SERÁ DUAS VARIÁVEIS: cpf_sem_ponto_virgula e cpf_formatado
             if cpf != "None":
                 try:
                     if isinstance(cpf,str):
                         cpf = cpf.replace('.','')
                         cpf = cpf.replace('-','')
-                        cpf_sem_ponto_virgula = int(cpf)
+                        cpf_sem_ponto_virgula = str(cpf)
                     else: 
                         print('CPF é inválido.')
     
@@ -255,11 +263,17 @@ with sync_playwright() as p:
                 processo = processo.replace('.','')
                 processo = processo.replace('-','')
                 processo = processo.replace('/','')
-                processo_sem_pontos = int(processo)
+                processo_sem_pontos = str(processo)
+
             else: 
                 print('Processo é inválido.')
             
             processo_formatado = re.sub(r'(\d{4})(\d{6})(\d{4})(\d{2})', r'\1.\2/\3-\4', "{:016d}".format(int(processo_sem_pontos))) 
+            #AQUI SELECIONAMOS O NÚMERO DO MEIO DO PROCESSO:
+            processo_cortado = processo_formatado.strip().split('/')[0]
+            processo_cortado = processo_cortado.strip().split('.')[1]
+            value_numero_cortado = str(processo_cortado) + "-" + str(linha)
+            
             
             try:
                 exercicio = int(exercicio)
@@ -267,7 +281,7 @@ with sync_playwright() as p:
                 try:
                     empenho = int(empenho)
                 except:
-                    exercicio = str(exercicio)
+                    exercicio = '2025'
                     empenho = str(empenho)
 
             if isinstance(empenho,str):
@@ -301,9 +315,6 @@ with sync_playwright() as p:
                         verificar_panico_e_sair(book)
 
                     #INFORMAÇÕES PRELIMINARES
-                    #AQUI SELECIONAMOS O NÚMERO DO MEIO DO PROCESSO:
-                    processo_cortado = processo_formatado.strip().split('/')[0]
-                    processo_cortado = processo_formatado.strip().split('.')[1]
                     #DATA DE HOJE:
                     data_atual = date.today() 
                     #FORMATAR A DATA:
@@ -320,7 +331,7 @@ with sync_playwright() as p:
                     tipo_documento = manter_despesa_certificada.locator("#cmbCdTipoDocumento")
                     tipo_documento.select_option(label="Outros")
                     numero_documento = manter_despesa_certificada.locator("#txtNuDocumento")
-                    numero_documento.press_sequentially(processo_cortado)
+                    numero_documento.press_sequentially(value_numero_cortado)
                     favorecido = manter_despesa_certificada.locator("#txtNmCredor_lnkBtnPesquisa")
                     valor_documento = manter_despesa_certificada.locator("#txtVlDocumento")
                     data_emissao = manter_despesa_certificada.locator("#txtDtEmissao_SIGEFData")
@@ -356,6 +367,7 @@ with sync_playwright() as p:
                             botao_cpf.click()
                             preencher_cpf = selecionar_favorecido.get_by_role("textbox")
                             preencher_cpf.wait_for()
+                            cpf_sem_ponto_virgula = str(cpf_sem_ponto_virgula)
                             preencher_cpf.press_sequentially(cpf_sem_ponto_virgula)
                             time.sleep(0.5)
                             botao_confirmar = selecionar_favorecido.get_by_role("button", name="Confirmar a Consulta")
@@ -401,6 +413,8 @@ with sync_playwright() as p:
                                         primeiro_nome_na_tela = primeiro_nome_na_tela.replace('Ô','O')
                                         primeiro_nome_na_tela = primeiro_nome_na_tela.replace('Ô','O')
                                         primeiro_nome_na_tela = primeiro_nome_na_tela.replace('É','E')
+                                        primeiro_nome_na_tela = primeiro_nome_na_tela.replace('Ú','U')
+                                        primeiro_nome_na_tela = primeiro_nome_na_tela.replace('Ê','E')
                                         primeiro_nome = primeiro_nome.upper()
                                         primeiro_nome = primeiro_nome.replace('Ç','C')
                                         primeiro_nome = primeiro_nome.replace('Ã','A')
@@ -409,7 +423,9 @@ with sync_playwright() as p:
                                         primeiro_nome = primeiro_nome.replace('Í','I')
                                         primeiro_nome = primeiro_nome.replace('Ô','O')
                                         primeiro_nome = primeiro_nome.replace('Õ','O')
-                                        primeiro_nome = primeiro_nome.replace('É','E')                   
+                                        primeiro_nome = primeiro_nome.replace('É','E')      
+                                        primeiro_nome = primeiro_nome.replace('Ú','U')    
+                                        primeiro_nome = primeiro_nome.replace('Ê','E')           
                                         print("Primeiro nome esperado: " + primeiro_nome)
                                         print("Primeiro nome encontrado na tela: " + primeiro_nome_na_tela)
                                         if primeiro_nome_na_tela.upper() == primeiro_nome.upper():
@@ -478,11 +494,14 @@ with sync_playwright() as p:
                         
                     else:
 
+                        
                         numero_despesa_certificada = manter_despesa_certificada.locator("#txtNuSeq")
-                        numero_despesa_certificada.click()
-                        numero_despesa_certificada.press("Control+KeyC")
-                        numero_despesa_certificada = pyperclip.paste()
-                        despesa_certificada = "2025CE" + str(numero_despesa_certificada)
+                        numero_despesa_certificada.wait_for(timeout=10000)
+                        numero_despesa_certificada.dblclick()
+                        numero_despesa_certificada.press('Control+KeyC')
+                        despesa_certificada =  numero_despesa_certificada = pyperclip.paste()
+                        despesa_certificada = "2025CE" + str(despesa_certificada)
+                        print(despesa_certificada)
                     
                         if despesa_certificada_teste == despesa_certificada:
                             print("REPETIDO. Refazendo Despesa Certificada!")
