@@ -38,7 +38,8 @@ except:
     sys.exit()
 
 #SE QUISER DESATIVAR AQUELA JANELA DO COMEÇO PODE EXCLUIR ELA AQUI:
-pyautogui.alert(text='Procedimento: Certificar e liquidar.', title='Início', button='OK')
+pyautogui.alert(text='Procedimento: PP Despesa Empenhada'
+'.', title='Início', button='OK')
 
 #FUNÇÃO QUE SERÁ CHAMADA PELA TECLA DE PANICO
 def parar_execucao():
@@ -301,8 +302,6 @@ with sync_playwright() as p:
                 nota_de_empenho = re.sub(r'(\d{4})(\d{6})', r'\1NE\2', "{:010d}".format((empenho)))
                 nota_de_empenho = nota_de_empenho.replace('0000NE',exercicio_NE)
                 
-
-            
             if ja_foi_liquidado == True:
                     
                 if ja_foi_preparado == False:
@@ -312,50 +311,86 @@ with sync_playwright() as p:
 
                     pp_despesa_empenhada.wait_for_load_state('networkidle', timeout=30000)
                     campo_gestao = pp_despesa_empenhada.locator("#txtGestao_SIGEFPesquisa")
-                    campo_gestao.wait_for()
+                    campo_gestao.wait_for(timeout=5000)
                     campo_gestao.dblclick()
                     campo_gestao.press_sequentially(gestao)
                     ponto_interrogacao = pp_despesa_empenhada.locator("#txtNotaLancamento_lnkBtnPesquisa")
                     
                     with pp_despesa_empenhada.expect_popup() as popup_info:
                         ponto_interrogacao.click()
+                        time.sleep(0.5)
                         obedece_ou_nao_ordem_cronologica = popup_info.value
                         obedece_ou_nao_ordem_cronologica.wait_for_load_state('networkidle', timeout=30000)
                         obedece = obedece_ou_nao_ordem_cronologica.get_by_text("Obedece Ordem Cronológica", exact=True)
                         nao_obedece = obedece_ou_nao_ordem_cronologica.get_by_text("Não Obedece Ordem Cronológica")
+                        nao_obedece.wait_for(timeout=5000)
                     
-                    with pp_despesa_empenhada.expect_popup() as popup_info:
-                        nao_obedece.click()
-                        gerar_ordem_cronologica = popup_info.value
-                        gerar_ordem_cronologica.wait_for_load_state('networkidle', timeout=30000)
-                        numero_nl = gerar_ordem_cronologica.locator("#txtNotaLancamento_SIGEFPesquisa")
-                        numero_exercicio = gerar_ordem_cronologica.locator('[name="txtNotaLancamentoSigla"]')
-                        liquidacao = liquidacao.upper()
-
-                        numero_liquidacao = liquidacao.strip().split('NL')[1]
-                        exercicio_financeiro = liquidacao.strip().split('NL')[0]
-                        numero_liquidacao_1 = int(numero_liquidacao)
-                        exercicio_financeiro_1 = int(exercicio_financeiro)
-                        exercicio_NL = str(exercicio_financeiro_1) + "NL"
-                        nota_lancamento_formatada = re.sub(r'(\d{4})(\d{6})', r'\1NE\2', "{:010d}".format((numero_liquidacao_1)))
-                        nota_lancamento_formatada = nota_lancamento_formatada.replace('0000NE',exercicio_NL)
-
-                        numero_nl.press_sequentially(str(numero_liquidacao_1)) 
-                        print(numero_liquidacao_1)
-                        time.sleep(0.5) 
-                        numero_exercicio.press_sequentially(str(exercicio_financeiro))
-                        print(exercicio_financeiro)
-                        time.sleep(0.5) 
-                        
-                        botao_confirmar = gerar_ordem_cronologica.get_by_role("button", name="Confirma a Consulta")
-                        botao_confirmar.click()
-                        gerar_ordem_cronologica.wait_for_load_state('networkidle', timeout=30000)
-                        fonte_recurso = gerar_ordem_cronologica.locator('td[onclick="SelecionarItem(\'0\');"]')
-                        fonte_recurso.wait_for()
-                        fonte_recurso.click()
+                        try:
+                            with pp_despesa_empenhada.expect_popup() as popup_info:
+                                nao_obedece.click()
+                                time.sleep(0.5)
+                                gerar_ordem_cronologica = popup_info.value
+                                gerar_ordem_cronologica.wait_for_load_state('networkidle', timeout=30000)
+                                numero_nl = gerar_ordem_cronologica.locator("#txtNotaLancamento_SIGEFPesquisa")
+                                numero_nl.wait_for(timeout=5000)
+                                numero_exercicio = gerar_ordem_cronologica.locator('[name="txtNotaLancamentoSigla"]')
+                                liquidacao = liquidacao.upper()
+                                numero_liquidacao = liquidacao.strip().split('NL')[1]
+                                exercicio_financeiro = liquidacao.strip().split('NL')[0]
+                                numero_liquidacao_1 = int(numero_liquidacao)
+                                exercicio_financeiro_1 = int(exercicio_financeiro)
+                                exercicio_NL = str(exercicio_financeiro_1) + "NL"
+                                nota_lancamento_formatada = re.sub(r'(\d{4})(\d{6})', r'\1NE\2', "{:010d}".format((numero_liquidacao_1)))
+                                nota_lancamento_formatada = nota_lancamento_formatada.replace('0000NE',exercicio_NL)
+                                numero_nl.press_sequentially(str(numero_liquidacao_1)) 
+                                time.sleep(0.5) 
+                                numero_exercicio.press_sequentially(str(exercicio_financeiro))
+                                time.sleep(0.5) 
+                                botao_confirmar = gerar_ordem_cronologica.get_by_role("button", name="Confirma a Consulta")
+                                botao_confirmar.click()
+                                time.sleep(0.5)
+                                gerar_ordem_cronologica.wait_for_load_state('networkidle', timeout=30000)
+                                fonte_recurso = gerar_ordem_cronologica.locator('td[onclick="SelecionarItem(\'0\');"]')
+                                fonte_recurso.wait_for()
+                                fonte_recurso.click()
+                                time.sleep(0.5)
+                        except:
+                            time.sleep(0)
+                    try:
+                            with pp_despesa_empenhada.expect_popup() as popup_info:
+                                nao_obedece.click()
+                                time.sleep(0.5)
+                                gerar_ordem_cronologica = popup_info.value
+                                gerar_ordem_cronologica.wait_for_load_state('networkidle', timeout=30000)
+                                numero_nl = gerar_ordem_cronologica.locator("#txtNotaLancamento_SIGEFPesquisa")
+                                numero_nl.wait_for(timeout=5000)
+                                numero_exercicio = gerar_ordem_cronologica.locator('[name="txtNotaLancamentoSigla"]')
+                                liquidacao = liquidacao.upper()
+                                numero_liquidacao = liquidacao.strip().split('NL')[1]
+                                exercicio_financeiro = liquidacao.strip().split('NL')[0]
+                                numero_liquidacao_1 = int(numero_liquidacao)
+                                exercicio_financeiro_1 = int(exercicio_financeiro)
+                                exercicio_NL = str(exercicio_financeiro_1) + "NL"
+                                nota_lancamento_formatada = re.sub(r'(\d{4})(\d{6})', r'\1NE\2', "{:010d}".format((numero_liquidacao_1)))
+                                nota_lancamento_formatada = nota_lancamento_formatada.replace('0000NE',exercicio_NL)
+                                numero_nl.press_sequentially(str(numero_liquidacao_1)) 
+                                time.sleep(0.5) 
+                                numero_exercicio.press_sequentially(str(exercicio_financeiro))
+                                time.sleep(0.5) 
+                                botao_confirmar = gerar_ordem_cronologica.get_by_role("button", name="Confirma a Consulta")
+                                botao_confirmar.click()
+                                time.sleep(0.5)
+                                gerar_ordem_cronologica.wait_for_load_state('networkidle', timeout=30000)
+                                fonte_recurso = gerar_ordem_cronologica.locator('td[onclick="SelecionarItem(\'0\');"]')
+                                fonte_recurso.wait_for()
+                                fonte_recurso.click()
+                                time.sleep(0.5)
+                    except:
+                            time.sleep(0)
 
                     pp_despesa_empenhada.wait_for_load_state('networkidle', timeout=30000)
                     cessionario = pp_despesa_empenhada.locator("#txtCredor_SIGEFPesquisa")
+                    cessionario.wait_for(timeout=5000)
                     value_cessionario = cessionario.input_value()
                     value_cessionario = value_cessionario
                     while value_cessionario != cpf_formatado:
@@ -368,47 +403,56 @@ with sync_playwright() as p:
                     tipo_ordem_bancaria.wait_for(timeout=5000)
                     tipo_ordem_bancaria.select_option(label="Descentralizada")
                     locator_banco = pp_despesa_empenhada.locator("#txtBanco")
+                    locator_banco.wait_for(timeout=5000)
                     locator_agencia = pp_despesa_empenhada.locator("#txtAgencia")
                     locator_conta_corrente = pp_despesa_empenhada.locator("#txtConta_SIGEFPesquisa")
                     
                     locator_banco.press_sequentially(banco)
-                    locator_agencia.press_sequentially(agencia)
-
+                    time.sleep(0.5)
                     ponto_interrogacao2= pp_despesa_empenhada.locator("#txtConta_lnkBtnPesquisa")
+                    ponto_interrogacao2.wait_for(timeout=5000)
                     with pp_despesa_empenhada.expect_popup() as popup_info:
+                        
                         ponto_interrogacao2.click()
                         pesquisar_domicilio_bancario = popup_info.value
                         pesquisar_domicilio_bancario.wait_for_load_state('networkidle', timeout=30000)
                         botao_confirmar = pesquisar_domicilio_bancario.get_by_role("button", name="Confirmar a Consulta")
                         botao_confirmar.click()
+                        time.sleep(0.5)
                         pesquisar_domicilio_bancario.wait_for_load_state('networkidle', timeout=30000)
                         try:
-                            conta = str(conta)
-                            conta = conta.replace("-",'')
-                            conta = conta.replace("-",'')
+                            conta_nova = str(conta)
+                            conta_nova = conta.replace("-",'')
+                            conta_nova = conta.replace("-",'')
+                            conta_nova = conta.replace("x",'0')
+                            conta_nova = conta.replace("X",'0')
 
-                            conta_formatada_com_traco = re.sub(r'(\d{9})(\d{1})', r'\1-\2', "{:010d}".format(int(conta)))  
+                            conta_formatada_com_traco = re.sub(r'(\d{9})(\d{1})', r'\1-\2', "{:010d}".format(int(conta_nova)))  
                             conta_formatada_sem_traco = conta_formatada_com_traco.replace("-",'')
     
                             selecionar_banco = pesquisar_domicilio_bancario.get_by_role("cell", name=conta_formatada_sem_traco, exact=True)
+                            selecionar_banco.wait_for(timeout=5000)
                             
                             if selecionar_banco.is_visible():
                                 conta_que_peguei = selecionar_banco.inner_text()
                         
-                            print(f"Procurando pela célula da conta: '{conta_formatada_sem_traco}'...")
+                            print(f"Procurando pela célula da conta: '{conta}'...")
                             linha_correta = pesquisar_domicilio_bancario.locator("tr.GridLinhaPar").filter(has_text=conta_formatada_sem_traco)
+                            linha_correta.wait_for(timeout=5000)
                             print("Linha da conta encontrada na tabela.")
 
          
 
                             if conta_que_peguei == conta_formatada_sem_traco:
+                                time.sleep(0.5)
                                 seletor_onclick = f'td[onclick*="{conta_formatada_com_traco}"]'
                                 celula_banco_para_clicar = linha_correta.get_by_role("cell", name=banco, exact=True)
+                                celula_banco_para_clicar.wait_for(timeout=5000)
                                 celula_banco_para_clicar.click()
                         except Exception as e:
                             print(f"Ocorreu um erro ao tentar selecionar a conta pela conta corrente: {e}")
-                            print('A conta bancária do credor é ' + banco + ' ' + agencia + ' ' +conta + '.')
-                            pyautogui.alert(text='Selecione a conta bancária do credor manualmente.', title='Seleção Manual', button='OK')
+                            selecione_manual = 'Selecione manualmente. A conta bancária inscrita na planilha é ' + banco + ' ' + agencia + ' ' +conta + '.'
+                            pyautogui.alert(text=selecione_manual, title='Seleção Manual', button='OK')
                             
 
                     campo_observacao = pp_despesa_empenhada.locator("#txtObservacao")
@@ -417,6 +461,7 @@ with sync_playwright() as p:
                     campo_observacao.press("Control+KeyA+Backspace")
                     campo_observacao.press_sequentially(texto_da_pp)
                     botao_retencoes = pp_despesa_empenhada.get_by_role("button", name="Sugerir Retenções")
+                    botao_retencoes.wait_for(timeout=5000)
                     botao_retencoes.click()
                     sugerindo_retencoes = False
                     nao_existem_retencoes = pp_despesa_empenhada.get_by_text("Não existem sugestões para")
@@ -424,6 +469,7 @@ with sync_playwright() as p:
                         if nao_existem_retencoes.is_visible():
                             sugerindo_retencoes=True
                     if sugerindo_retencoes == True:
+                        time.sleep(0.5)
                         menu_confirmacao = pp_despesa_empenhada.locator("#menun7").get_by_role("link")
                         menu_confirmacao.click()
                         pp_despesa_empenhada.wait_for_load_state('networkidle', timeout=30000)
@@ -434,16 +480,17 @@ with sync_playwright() as p:
 
                         if value_confirmacao_conta == conta_formatada_com_traco:
                             botao_confirmar = pp_despesa_empenhada.get_by_role("button", name="Confirmar a Operação")
+                            botao_confirmar.wait_for(timeout=5000)
                             botao_confirmar.click()
                             mensagem_sucesso = pp_despesa_empenhada.get_by_text("Operação realizada com")
-                            mensagem_sucesso.wait_for()
+                            mensagem_sucesso.wait_for(timeout=5000)
                             texto_completo = mensagem_sucesso.inner_text()
                             if "O número gerado foi" in texto_completo:
                                 numero_nl = texto_completo.split("foi ")[1]
                                 pp = numero_nl.strip('.')
                                 print(pp)
                             botao_limpar = pp_despesa_empenhada.get_by_role("link", name="Limpar a Tela")
-                            botao_limpar.wait_for()
+                            botao_limpar.wait_for(timeout=5000)
                             botao_limpar.click()
                             pp_despesa_empenhada.wait_for_load_state('networkidle', timeout=30000)
                             try:
@@ -451,6 +498,7 @@ with sync_playwright() as p:
                                 pagina3.delete_rows(linha,1)
                                 pagina3.append([ug,gestao,processo_formatado,nome,cpf_formatado,valor,banco, agencia, conta,nota_de_empenho,despesa_certificada,liquidacao,pp])
                                 book.save('Pagamentos.xlsx')
+                                pp = 'não foi feita'
                             except:
                                 
                                 pyautogui.alert(text='Erro.', title='Algum item deu erro', button='OK')
@@ -462,14 +510,14 @@ with sync_playwright() as p:
                                 botao_confirmar = pp_despesa_empenhada.get_by_role("button", name="Confirmar a Operação")
                                 botao_confirmar.click()
                                 mensagem_sucesso = pp_despesa_empenhada.get_by_text("Operação realizada com")
-                                mensagem_sucesso.wait_for()
+                                mensagem_sucesso.wait_for(timeout=5000)
                                 texto_completo = mensagem_sucesso.inner_text()
                                 if "O número gerado foi" in texto_completo:
                                     numero_nl = texto_completo.split("foi ")[1]
                                     pp = numero_nl.strip('.')
                                     print(pp)
                                 botao_limpar = pp_despesa_empenhada.get_by_role("link", name="Limpar a Tela")
-                                botao_limpar.wait_for()
+                                botao_limpar.wait_for(timeout=5000)
                                 botao_limpar.click()
                                 pp_despesa_empenhada.wait_for_load_state('networkidle', timeout=30000)
                                 try:
@@ -478,6 +526,7 @@ with sync_playwright() as p:
                                     pagina3.delete_rows(linha,1)
                                     pagina3.append([ug,gestao,processo_formatado,nome,cpf_formatado,valor,banco, agencia, conta,nota_de_empenho,despesa_certificada,liquidacao,pp])
                                     book.save('Pagamentos.xlsx')
+                                    pp = 'não foi feita'
                                 except:
                                     pyautogui.alert(text='Erro.', title='Algum item deu erro', button='OK')
                             else:
@@ -490,10 +539,11 @@ with sync_playwright() as p:
                                         pagina3.delete_rows(linha,1)
                                         pagina3.append([ug,gestao,processo_formatado,nome,cpf_formatado,valor,banco, agencia, conta,nota_de_empenho,despesa_certificada,liquidacao,pp])
                                         book.save('Pagamentos.xlsx')
+                                        pp = 'não foi feita'
                                     except:
                                         pyautogui.alert(text='Erro.', title='Algum item deu erro', button='OK')
                                     botao_limpar = pp_despesa_empenhada.get_by_role("link", name="Limpar a Tela")
-                                    botao_limpar.wait_for()
+                                    botao_limpar.wait_for(timeout=5000)
                                     botao_limpar.click()
                                 else:
                                     if book:
