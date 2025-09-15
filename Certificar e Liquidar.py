@@ -258,7 +258,35 @@ with sync_playwright() as p:
                 if valor == "None":
                     loop = False
                     break
-            
+
+            if data != "None":
+                if isinstance(data,str):
+                    data_fomatada = data.replace('/','')
+                    data_fomatada = data_fomatada.replace('.','')
+                    data_fomatada = data_fomatada.replace('-','')
+                    data_fomatada = data_fomatada.replace(' ','')
+                    data_fomatada = data_fomatada.replace(',','')
+                            
+                    try:
+                        data_formatada = int(data_fomatada)
+                        data_formatada = re.sub(r'(\d{2})(\d{2})(\d{4})', r'\1/\2/\3', "{:08d}".format(int(data_fomatada)))
+                        data_foi_formatada = True
+                    except:
+                        print('Atenção, na planilha consta que a data é ' + data + ", portanto será utilizado como parâmetro a data atual.")
+                        data_atual = date.today() 
+                        data_formatada = data_atual.strftime("%d/%m/%Y")
+                        data_foi_formatada = True
+                        
+                else:
+                    print('Atenção, na planilha consta que a data é ' + data + ", portanto será utilizado como parâmetro a data atual.")
+                    data_atual = date.today() 
+                    data_formatada = data_atual.strftime("%d/%m/%Y")
+                    data_foi_formatada = True
+                        
+            else: 
+                print('[ATENÇÃO] Data não foi preenchida na planilha.')
+                data_foi_formatada = False
+        
             if isinstance(processo,str):
                 processo = processo.replace('.','')
                 processo = processo.replace('-','')
@@ -272,9 +300,9 @@ with sync_playwright() as p:
             #AQUI SELECIONAMOS O NÚMERO DO MEIO DO PROCESSO:
             processo_cortado = processo_formatado.strip().split('/')[0]
             processo_cortado = processo_cortado.strip().split('.')[1]
-            value_numero_cortado = str(processo_cortado) + "-" + str(linha)
-            
-            
+            linha_documento = int(linha) - 1
+            value_numero_cortado = str(processo_cortado) + "-" + str(linha_documento)
+        
             try:
                 exercicio = int(exercicio)
             except:
@@ -302,14 +330,6 @@ with sync_playwright() as p:
                 ja_foi_certificado = False
                 if ja_foi_certificado == False:
                     texto_da_ce =  "Certificação de Despesa: Pagamento para o(a) servidor(a) " + str(cpf_formatado) + " " + str(nome) + " referente à " + str(operacao) + " realizada no período de " + str(data) + ". Processo Administrativo n: " + str(processo_formatado) + "."
-                    texto_da_ce = texto_da_ce.replace('ç','c')
-                    texto_da_ce = texto_da_ce.replace('ã','a')
-                    texto_da_ce = texto_da_ce.replace('á','a')
-                    texto_da_ce = texto_da_ce.replace('à','a')
-                    texto_da_ce = texto_da_ce.replace('í','i')
-                    texto_da_ce = texto_da_ce.replace('ô','o')
-                    texto_da_ce = texto_da_ce.replace('õ','o')
-                    texto_da_ce = texto_da_ce.replace('é','e')
 
                     if robo_deve_parar:
                         verificar_panico_e_sair(book)
@@ -350,8 +370,54 @@ with sync_playwright() as p:
                     data_apresentacao.click()
                     data_apresentacao.press_sequentially(data_de_baixa)
                     time.sleep(0.2)
-                    competencia.select_option(label="Agosto")
+
+                    if data_foi_formatada == True:
+
+                        mes = data_formatada.strip().split('/')[1]
+                        mes = mes.strip().split('/')[0]
+
+                        if mes == "01":
+                            selecionar_competencia = 'Janeiro'
+                        else:
+                            if mes == "02":
+                                selecionar_competencia = 'Fevereiro'
+                            else:
+                                if mes == "03":
+                                    selecionar_competencia = 'Março'
+                                else:
+                                    if mes == "04":
+                                        selecionar_competencia = 'Abril'
+                                    else:
+                                        if mes == "05":
+                                            selecionar_competencia = 'Maio'
+                                        else:
+                                            if mes == "06":
+                                                selecionar_competencia = 'Junho'
+                                            else:
+                                                if mes == "07":
+                                                    selecionar_competencia = 'Julho'
+                                                else:   
+                                                    if mes == "08":
+                                                        selecionar_competencia = 'Agosto'
+                                                    else:
+                                                        if mes == "09":
+                                                            selecionar_competencia = 'Setembro'
+                                                        else:
+                                                            if mes == "10":
+                                                                selecionar_competencia = 'Outubro'
+                                                            else:
+                                                                if mes == "11":
+                                                                    selecionar_competencia = 'Novembro'
+                                                                else:
+                                                                    if mes == "12":
+                                                                        selecionar_competencia = 'Dezembro'
+                                                                    else:
+                                                                        selecionar_competencia = 'Setembro'
+                        data_foi_formatada = False
+                    
+                    competencia.select_option(label=selecionar_competencia)
                     time.sleep(0.2)
+                    
                     atestado.click()
                     
                     with manter_despesa_certificada.expect_popup() as popup_info:
@@ -419,6 +485,7 @@ with sync_playwright() as p:
                                         primeiro_nome = primeiro_nome.replace('Ç','C')
                                         primeiro_nome = primeiro_nome.replace('Ã','A')
                                         primeiro_nome = primeiro_nome.replace('À','A')
+                                        primeiro_nome = primeiro_nome.replace('Â','A')
                                         primeiro_nome = primeiro_nome.replace('Á','A')
                                         primeiro_nome = primeiro_nome.replace('Í','I')
                                         primeiro_nome = primeiro_nome.replace('Ô','O')
@@ -837,15 +904,26 @@ with sync_playwright() as p:
                         valor_bruto = liquidar_despesa_certificada.locator("#txtValorBrutoId")
                         valor_bruto.wait_for()
                         valor = str(valor)
-                        time.sleep(0.3)
-                        valor_bruto.press_sequentially(valor)
+                        try:
+                            time.sleep(0.3)
+                            valor_bruto.press_sequentially(valor)
+                        except:
+                            try:
+                                time.sleep(0.3)
+                                valor_bruto.press_sequentially(valor)
+                            except:
+                                texto = "Insira manualmente o valor de " + valor + '.'
+                                pyautogui.alert(text=texto, title='Fim', button='OK')
+
                         time.sleep(0.3)
                         botao_retencoes = liquidar_despesa_certificada.get_by_role("button", name="Sugerir Retenções")
                         botao_retencoes.click()
                         nao_existem_retencoes = liquidar_despesa_certificada.get_by_text("Não existem sugestões para")
                         nao_existem_retencoes.wait_for()
                         valor_liquido = liquidar_despesa_certificada.locator("#txtValorLiquidoId")
+                        valor_liquido.wait_for()
                         value_valor_liquido = valor_liquido.input_value()
+                        value_valor_liquido = value_valor_liquido.replace('.','')
                         
                         if value_valor_liquido == valor:
 
