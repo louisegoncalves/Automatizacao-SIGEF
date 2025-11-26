@@ -40,6 +40,44 @@ except:
     pyautogui.alert(text='Deu algum erro na planilha.', title='Erro', button='OK')
     sys.exit()
 
+#PLANILHA DE BACKUP:
+try:
+    book1 = openpyxl.load_workbook("Pagamentos_Backup.xlsx")
+    pagina_backup = book1['Entrada']
+    pagina1_backup = book1['Despesas Certificadas']
+    pagina2_backup = book1['Notas de Liquidação']
+    pagina3_backup = book1['Preparações de Pagamento']
+    pagina4_backup = book1['Ordens Bancárias']
+    pagina5_backup = book1['Saída']
+except:
+    try:
+        wb = openpyxl.Workbook()
+        ws_principal = wb.active
+        ws_principal.title = "Entrada"
+        wb.save("Pagamentos_Backup.xlsx")
+        try:
+            wb.create_sheet("Despesas Certificadas")
+            wb.create_sheet("Notas de Liquidação")
+            wb.create_sheet("Preparações de Pagamento")
+            wb.create_sheet("Ordens Bancárias")
+            wb.create_sheet('Saída')
+            wb.save("Pagamentos_Backup.xlsx")
+            print("Arquivo 'Pagamentos_Backup.xlsx' criado com sucesso com várias planilhas.")
+        except:
+            print("Erro na planilha de backup.")
+        try:
+            book1 = openpyxl.load_workbook("Pagamentos_Backup.xlsx")
+            pagina_backup = book1['Entrada']
+            pagina1_backup = book1['Despesas Certificadas']
+            pagina2_backup = book1['Notas de Liquidação']
+            pagina3_backup = book1['Preparações de Pagamento']
+            pagina4_backup = book1['Ordens Bancárias']
+            pagina5_backup = book1['Saída']
+        except:
+                print("Erro na planilha de backup.")
+    except:
+        print("Erro na planilha de backup.")
+
 #SE QUISER DESATIVAR AQUELA JANELA DO COMEÇO PODE EXCLUIR ELA AQUI:
 pyautogui.alert(text='Procedimento: Certificar e liquidar.', title='Início', button='OK')
 
@@ -161,7 +199,6 @@ with sync_playwright() as p:
                 for cell in row:
                     valor = cell.value
                     valor = str(valor)
-                    valor = valor.replace('.',',')
             
             #LENDO O BANCO
             coluna = coluna + 1
@@ -375,6 +412,7 @@ with sync_playwright() as p:
 
                         mes = data_formatada.strip().split('/')[1]
                         mes = mes.strip().split('/')[0]
+                        print(mes)
 
                         if mes == "01":
                             selecionar_competencia = 'Janeiro'
@@ -553,15 +591,18 @@ with sync_playwright() as p:
                         documento_ja_cadastrado = False
 
                     if documento_ja_cadastrado == True:
-
-                        despesa_certificada = "pesquisar no sigef"
-                        pagina1.delete_rows(linha,1)
-                        pagina1.append([ug,gestao,processo_formatado,nome,cpf_formatado,valor,banco, agencia,conta,nota_de_empenho,despesa_certificada])
-                        book.save('Pagamentos.xlsx')   
-                        
+                        try:
+                            despesa_certificada = "pesquisar no sigef"
+                            pagina1_backup.append([ug,gestao,processo_formatado,nome,cpf_formatado,valor,banco, agencia,conta,nota_de_empenho,despesa_certificada])
+                            pagina1.delete_rows(linha,1)
+                            pagina1.append([ug,gestao,processo_formatado,nome,cpf_formatado,valor,banco, agencia,conta,nota_de_empenho,despesa_certificada])
+                            book.save('Pagamentos.xlsx')   
+                        except:
+                            book1.save("Pagamentos_Backup.xlsx")
+                            print("Deu algum erro ao salvar a planilha, a planilha de backup foi solicitada.")
+                            book1.close()
+                            sys.exit()
                     else:
-
-                        
                         numero_despesa_certificada = manter_despesa_certificada.locator("#txtNuSeq")
                         numero_despesa_certificada.wait_for(timeout=10000)
                         numero_despesa_certificada.dblclick()
@@ -585,9 +626,16 @@ with sync_playwright() as p:
                                 if despesa_certificada == "pesquisar no sigef":
                                     time.sleep(0.1)
                                 else:
-                                    pagina1.delete_rows(linha,1)
-                                    pagina1.append([ug,gestao,processo_formatado,nome,cpf_formatado,valor,banco, agencia,conta,nota_de_empenho,despesa_certificada])
-                                    book.save('Pagamentos.xlsx')
+                                    try:
+                                        pagina1_backup.append([ug,gestao,processo_formatado,nome,cpf_formatado,valor,banco, agencia,conta,nota_de_empenho,despesa_certificada])
+                                        pagina1.delete_rows(linha,1)
+                                        pagina1.append([ug,gestao,processo_formatado,nome,cpf_formatado,valor,banco, agencia,conta,nota_de_empenho,despesa_certificada])
+                                        book.save('Pagamentos.xlsx')
+                                    except:
+                                        book1.save("Pagamentos_Backup.xlsx")
+                                        print("Deu algum erro ao salvar a planilha, a planilha de backup foi solicitada.")
+                                        book1.close()
+                                        sys.exit()
                     
                     botao_limpar = manter_despesa_certificada.get_by_role("link", name="Limpar a Tela")
                     botao_limpar.click()
@@ -670,7 +718,6 @@ with sync_playwright() as p:
                 for cell in row:
                     valor = cell.value
                     valor = str(valor)
-                    valor = valor.replace('.',',')
                 
             #LENDO O BANCO
             coluna = coluna + 1
@@ -986,20 +1033,35 @@ with sync_playwright() as p:
                             if liquidacao != "ERRO":
                                 liquidacao = str(liquidacao) 
                                 print(f"Valor final da variável 'liquidacao': {liquidacao}")
-                                pagina2.delete_rows(linha,1)
-                                pagina2.append([ug,gestao,processo_formatado,nome,cpf_formatado,valor,banco, agencia, conta,nota_de_empenho,despesa_certificada,liquidacao])
-                                pagina5.delete_rows(linha,1)
-                                pagina5.append([ug,gestao,processo_formatado,nome,cpf_formatado,valor,banco, agencia, conta,nota_de_empenho,despesa_certificada,liquidacao])
-                                book.save('Pagamentos.xlsx')
+                                try:
+                                    pagina2_backup.append([ug,gestao,processo_formatado,nome,cpf_formatado,valor,banco, agencia,conta,nota_de_empenho,despesa_certificada,liquidacao])
+                                    pagina2.delete_rows(linha,1)
+                                    pagina2.append([ug,gestao,processo_formatado,nome,cpf_formatado,valor,banco, agencia, conta,nota_de_empenho,despesa_certificada,liquidacao])
+                                    book.save('Pagamentos.xlsx')
+                                except:           
+                                    
+                                    book1.save("Pagamentos_Backup.xlsx")
+                                    print("Deu algum erro ao salvar a planilha, a planilha de backup foi solicitada.")
+                                    book1.close()
+                                    sys.exit()
+
                         else:
+
                             print("Deu algum erro!!")
                     else:
                             liquidacao = str(primeira_nl)
-                            pagina2.delete_rows(linha,1)
-                            pagina2.append([ug,gestao,processo_formatado,nome,cpf_formatado,valor,banco, agencia, conta,nota_de_empenho,despesa_certificada,liquidacao])
-                            pagina5.delete_rows(linha,1)
-                            pagina5.append([ug,gestao,processo_formatado,nome,cpf_formatado,valor,banco, agencia, conta,nota_de_empenho,despesa_certificada,liquidacao])
-                            book.save('Pagamentos.xlsx')
+                            try:
+                                pagina2_backup.append([ug,gestao,processo_formatado,nome,cpf_formatado,valor,banco, agencia,conta,nota_de_empenho,despesa_certificada,liquidacao])
+                                pagina2.delete_rows(linha,1)
+                                pagina2.append([ug,gestao,processo_formatado,nome,cpf_formatado,valor,banco, agencia, conta,nota_de_empenho,despesa_certificada,liquidacao])
+                                book.save('Pagamentos.xlsx')
+                            except:
+                                                                
+                                book1.save("Pagamentos_Backup.xlsx")
+                                print("Deu algum erro ao salvar a planilha, a planilha de backup foi solicitada.")
+                                book1.close()
+                                sys.exit()
+                                
 
                 liquidar_despesa_certificada.close()
             linha = linha + 1
