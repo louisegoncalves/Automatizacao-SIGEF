@@ -20,6 +20,10 @@ from datetime import date
 from datetime import datetime
 import sys
 
+#QUAL PLANILHA VAI SER UTILIZADA?
+planilha = "Pagamentos - voluntariar novembro.xlsx"
+#planilha = "Pagamentos.xlsx"
+
 #VARIÁVEIS IMPORTANTES
 robo_deve_parar = False
 coluna = 1
@@ -29,7 +33,7 @@ despesa_certificada_teste = 'None'
 
 #PLANILHA NO EXCEL:
 try:
-    book = openpyxl.load_workbook('Pagamentos - voluntariar novembro.xlsx')
+    book = openpyxl.load_workbook(planilha)
     pagina = book['Entrada']
     pagina1 = book['Despesas Certificadas']
     pagina2 = book['Notas de Liquidação']
@@ -596,7 +600,7 @@ with sync_playwright() as p:
                             pagina1_backup.append([ug,gestao,processo_formatado,nome,cpf_formatado,valor,banco, agencia,conta,nota_de_empenho,despesa_certificada])
                             pagina1.delete_rows(linha,1)
                             pagina1.append([ug,gestao,processo_formatado,nome,cpf_formatado,valor,banco, agencia,conta,nota_de_empenho,despesa_certificada])
-                            book.save('Pagamentos - voluntariar novembro.xlsx')   
+                            book.save(planilha)   
                         except:
                             book1.save("Pagamentos_Backup.xlsx")
                             print("Deu algum erro ao salvar a planilha, a planilha de backup foi solicitada.")
@@ -614,13 +618,13 @@ with sync_playwright() as p:
                         if despesa_certificada_teste == despesa_certificada:
                             print("REPETIDO. Refazendo Despesa Certificada!")
                             pagina1.delete_rows(linha,1)
-                            book.save('Pagamentos - voluntariar novembro.xlsx')
+                            book.save(planilha)
                             despesa_certificada = 'None'
                         else:
                             if despesa_certificada == 'despesa_certificada':
                                 print("DEU ALGUM ERRO. Refazendo Despesa Certificada!")
                                 pagina1.delete_rows(linha,1)
-                                book.save('Pagamentos - voluntariar novembro.xlsx')
+                                book.save(planilha)
                                 despesa_certificada = 'None'
                             else:
                                 if despesa_certificada == "pesquisar no sigef":
@@ -630,7 +634,7 @@ with sync_playwright() as p:
                                         pagina1_backup.append([ug,gestao,processo_formatado,nome,cpf_formatado,valor,banco, agencia,conta,nota_de_empenho,despesa_certificada])
                                         pagina1.delete_rows(linha,1)
                                         pagina1.append([ug,gestao,processo_formatado,nome,cpf_formatado,valor,banco, agencia,conta,nota_de_empenho,despesa_certificada])
-                                        book.save('Pagamentos - voluntariar novembro.xlsx')
+                                        book.save(planilha)
                                     except:
                                         book1.save("Pagamentos_Backup.xlsx")
                                         print("Deu algum erro ao salvar a planilha, a planilha de backup foi solicitada.")
@@ -660,7 +664,7 @@ with sync_playwright() as p:
 
         #PLANILHA NO EXCEL:
         try:
-            book = openpyxl.load_workbook('Pagamentos - voluntariar novembro.xlsx')
+            book = openpyxl.load_workbook(planilha)
             pagina = book['Entrada']
             pagina1 = book['Despesas Certificadas']
             pagina2 = book['Notas de Liquidação']
@@ -1049,7 +1053,7 @@ with sync_playwright() as p:
                                         pagina2_backup.append([ug,gestao,processo_formatado,nome,cpf_formatado,valor,banco, agencia,conta,nota_de_empenho,despesa_certificada,liquidacao])
                                         pagina2.delete_rows(linha,1)
                                         pagina2.append([ug,gestao,processo_formatado,nome,cpf_formatado,valor,banco, agencia, conta,nota_de_empenho,despesa_certificada,liquidacao])
-                                        book.save('Pagamentos - voluntariar novembro.xlsx')
+                                        book.save(planilha)
                                 except:           
                                         
                                         book1.save("Pagamentos_Backup.xlsx")
@@ -1067,7 +1071,7 @@ with sync_playwright() as p:
                                     pagina2_backup.append([ug,gestao,processo_formatado,nome,cpf_formatado,valor,banco, agencia,conta,nota_de_empenho,despesa_certificada,liquidacao])
                                     pagina2.delete_rows(linha,1)
                                     pagina2.append([ug,gestao,processo_formatado,nome,cpf_formatado,valor,banco, agencia, conta,nota_de_empenho,despesa_certificada,liquidacao])
-                                    book.save('Pagamentos - voluntariar novembro.xlsx')
+                                    book.save(planilha)
                         except:
                                                                     
                                     book1.save("Pagamentos_Backup.xlsx")
