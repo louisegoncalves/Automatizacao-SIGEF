@@ -21,8 +21,8 @@ from datetime import datetime
 import sys
 
 #QUAL PLANILHA VAI SER UTILIZADA?
-planilha = "Pagamentos - voluntariar novembro.xlsx"
-#planilha = "Pagamentos.xlsx"
+#planilha = "Pagamentos - voluntariar novembro.xlsx"
+planilha = "Pagamentos.xlsx"
 
 #VARIÁVEIS IMPORTANTES
 robo_deve_parar = False
@@ -1672,3 +1672,4 @@ except:
 print("\nScript finalizado. A janela de depuracao permanece aberta.") 
 pyautogui.alert(text='Encerrei por aqui.', title='Fim', button='OK')
 sys.exit()
+
