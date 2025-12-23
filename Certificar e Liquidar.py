@@ -5,11 +5,11 @@
 
 #INSTRUÇÕES
 #ATENÇÃO: É OBRIGATÓRIO ABRIR O DEPURADOR DO GOOGLE CHROME PARA EXECUTAR ESSE CÓDIGO
-#EXECUTE NO CMD: "C:\Program Files\Google\Chrome\Application\chrome.exe" --remote-debugging-port=9222 --user-data-dir="C:\ChromeDebugProfile"
+#EXECUTE NO CMD: ""C:\Program Files\Google\Chrome\Application\chrome.exe" --remote-debugging-port=9222 --user-data-dir="C:\ChromeDebugProfile"
 #E LOGUE NO SIGEF
 
 #BIBLIOTECAS UTILIZADAS:
-from playwright.sync_api import sync_playwright, Page, TimeoutError
+from playwright.sync_api import sync_playwright
 import pyautogui
 import openpyxl
 import keyboard
@@ -21,7 +21,7 @@ from datetime import datetime
 import sys
 
 #QUAL PLANILHA VAI SER UTILIZADA?
-planilha = "Pagamentos - voluntariar novembro.xlsx"
+planilha = "Pagamentos - voluntariar dezembro.xlsx"
 #planilha = "Pagamentos.xlsx"
 
 #VARIÁVEIS IMPORTANTES
@@ -30,6 +30,7 @@ coluna = 1
 linha = 2
 loop = True
 despesa_certificada_teste = 'None'
+ainda_nao_foi_feito = '-'
 
 #PLANILHA NO EXCEL:
 try:
@@ -88,9 +89,9 @@ pyautogui.alert(text='Procedimento: Certificar e liquidar.', title='Início', bu
 #FUNÇÃO QUE SERÁ CHAMADA PELA TECLA DE PANICO
 def parar_execucao():
     global robo_deve_parar
-    print("\n!!! TECLA ESC ACIONADA! ENCERRANDO AUTOMACAO !!!")
+    print("\n!!! TECLA ESC ACIONADA! ENCERRANDO AUTOMACAO !!! \n")
     robo_deve_parar = True
-
+    
 #FUNÇÃO QUE ENCERRA O CODIGO E FECHA A PLANILHA COM SEGURANÇA
 #A PLANILHA DEVE SEMPRE SER FECHADA ANTES DE ENCERRAR, POIS CORRE O RISCO DE CORROMPER
 def verificar_panico_e_sair(workbook):
@@ -143,7 +144,7 @@ with sync_playwright() as p:
             verificar_panico_e_sair(book)
         
         #INÍCIO                
-        print("Iniciando!")
+        print("\nIniciando!")
 
         #PESQUISANDO FUNCIONALIDADE NO SIGEF
         pesquisar_funcionalidades_sistema = frame.get_by_placeholder("Pesquisar funcionalidades do sistema...")
@@ -196,6 +197,10 @@ with sync_playwright() as p:
                 for cell in row:
                     cpf = cell.value
                     cpf = str(cpf)
+                    try:
+                        cpf = cpf.replace(' ','')
+                    except:
+                        time.sleep(0)
                     
             #LENDO O VALOR
             coluna = coluna + 1
@@ -203,6 +208,18 @@ with sync_playwright() as p:
                 for cell in row:
                     valor = cell.value
                     valor = str(valor)
+                    try:
+                        valor = valor.replace('R$','')
+                    except:
+                        time.sleep(0)
+                    try:
+                        valor = valor.replace(' ','')
+                    except:
+                        time.sleep(0)
+                    try:
+                        valor = valor.replace('.','')
+                    except:
+                        time.sleep(0)
             
             #LENDO O BANCO
             coluna = coluna + 1
@@ -273,6 +290,13 @@ with sync_playwright() as p:
                 for cell in row:
                     operacao = cell.value
                     operacao = str(operacao)
+
+            #LENDO A DATA QUE DEVERÁ SER REALIZADO O PAGAMENTO
+            coluna = coluna + 1
+            for row in pagina.iter_rows(min_row=linha,max_col=coluna,max_row=linha):
+                for cell in row:
+                    data_do_pagamento = cell.value
+                    data_do_pagamento = str(data_do_pagamento)
             
             #FORMATANDO O CAMPO DA PLANILHA "CPF" NO MOLDE 000.000.000-00
             #O RESULTADO SERÁ DUAS VARIÁVEIS: cpf_sem_ponto_virgula e cpf_formatado
@@ -283,7 +307,7 @@ with sync_playwright() as p:
                         cpf = cpf.replace('-','')
                         cpf_sem_ponto_virgula = str(cpf)
                     else: 
-                        print('CPF é inválido.')
+                        print('[ATENÇÃO] CPF é inválido.')
     
                     cpf_formatado = re.sub(r'(\d{3})(\d{3})(\d{3})(\d{2})', r'\1.\2.\3-\4', "{:011d}".format(int(cpf_sem_ponto_virgula)))                        
                     cpf = cpf_formatado
@@ -291,7 +315,7 @@ with sync_playwright() as p:
                     time.sleep(0)    
                    
             if nome != "None":
-                print("Estou na linha " + str(linha) + " da planilha, referente ao servidor " + str(nome) + ".")
+                print("\nEstou na linha " + str(linha) + " da planilha, referente ao servidor " + str(nome) + ".")
             else:
                 time.sleep(0)
 
@@ -301,25 +325,23 @@ with sync_playwright() as p:
                     break
 
             if data != "None":
-                if isinstance(data,str):
-                    data_fomatada = data.replace('/','')
-                    data_fomatada = data_fomatada.replace('.','')
-                    data_fomatada = data_fomatada.replace('-','')
-                    data_fomatada = data_fomatada.replace(' ','')
-                    data_fomatada = data_fomatada.replace(',','')
+                if isinstance(data_do_pagamento,str):
+                    data_formatada = data_do_pagamento.replace('/','')
+                    data_formatada = data_formatada.replace('.','')
+                    data_formatada = data_formatada.replace('-','')
+                    data_formatada = data_formatada.replace(' ','')
+                    data_formatada = data_formatada.replace(',','')
                             
                     try:
-                        data_formatada = int(data_fomatada)
-                        data_formatada = re.sub(r'(\d{2})(\d{2})(\d{4})', r'\1/\2/\3', "{:08d}".format(int(data_fomatada)))
+                        data_formatada = int(data_formatada)
+                        data_formatada = re.sub(r'(\d{2})(\d{2})(\d{4})', r'\1/\2/\3', "{:08d}".format(int(data_formatada)))
                         data_foi_formatada = True
                     except:
-                        print('Atenção, na planilha consta que a data é ' + data + ", portanto será utilizado como parâmetro a data atual.")
                         data_atual = date.today() 
                         data_formatada = data_atual.strftime("%d/%m/%Y")
                         data_foi_formatada = True
                         
                 else:
-                    print('Atenção, na planilha consta que a data é ' + data + ", portanto será utilizado como parâmetro a data atual.")
                     data_atual = date.today() 
                     data_formatada = data_atual.strftime("%d/%m/%Y")
                     data_foi_formatada = True
@@ -335,10 +357,11 @@ with sync_playwright() as p:
                 processo_sem_pontos = str(processo)
 
             else: 
-                print('Processo é inválido.')
+                print('[ATENÇÃO] Processo é inválido.')
             
-            processo_formatado = re.sub(r'(\d{4})(\d{6})(\d{4})(\d{2})', r'\1.\2/\3-\4', "{:016d}".format(int(processo_sem_pontos))) 
+            
             #AQUI SELECIONAMOS O NÚMERO DO MEIO DO PROCESSO:
+            processo_formatado = re.sub(r'(\d{4})(\d{6})(\d{4})(\d{2})', r'\1.\2/\3-\4', "{:016d}".format(int(processo_sem_pontos))) 
             processo_cortado = processo_formatado.strip().split('/')[0]
             processo_cortado = processo_cortado.strip().split('.')[1]
             linha_documento = int(linha) - 1
@@ -376,14 +399,9 @@ with sync_playwright() as p:
                         verificar_panico_e_sair(book)
 
                     #INFORMAÇÕES PRELIMINARES
-                    #DATA DE HOJE:
-                    data_atual = date.today() 
-                    #FORMATAR A DATA:
-                    data_de_baixa = data_atual.strftime("%d/%m/%Y")
                     #HORA:
                     agora = datetime.now()
-                    #FORMATAR A HORA:
-                    hora = agora.strftime("%H:%M:%S")
+
                     manter_despesa_certificada.wait_for_load_state('networkidle', timeout=30000)
                     time.sleep(0.1)
                     campo_gestao = manter_despesa_certificada.locator("#txtCdGestao_SIGEFPesquisa")
@@ -403,20 +421,19 @@ with sync_playwright() as p:
                     atestado = manter_despesa_certificada.get_by_role("checkbox", name="Sou responsável pelo atesto")
                     time.sleep(0.2)
                     data_emissao.click()
-                    data_emissao.press_sequentially(data_de_baixa)
+                    data_emissao.press_sequentially(data_formatada)
                     time.sleep(0.2)
                     data_aceite.click()
-                    data_aceite.press_sequentially(data_de_baixa)
+                    data_aceite.press_sequentially(data_formatada)
                     time.sleep(0.2)
                     data_apresentacao.click()
-                    data_apresentacao.press_sequentially(data_de_baixa)
+                    data_apresentacao.press_sequentially(data_formatada)
                     time.sleep(0.2)
 
                     if data_foi_formatada == True:
 
                         mes = data_formatada.strip().split('/')[1]
                         mes = mes.strip().split('/')[0]
-                        print(mes)
 
                         if mes == "01":
                             selecionar_competencia = 'Janeiro'
@@ -495,7 +512,6 @@ with sync_playwright() as p:
                                         
                                     #É crucial esperar que esta âncora apareça
                                     primeira_celula_cpf.wait_for(timeout=10000)
-                                    print("Célula âncora encontrada com o texto: " + primeira_celula_cpf.inner_text())
 
                                     # --- PASSO 2: A PARTIR DA ÂNCORA, NAVEGAR ATÉ A LINHA PAI ---
                                     # O XPath '..' significa "vá para o elemento pai".
@@ -535,29 +551,28 @@ with sync_playwright() as p:
                                         primeiro_nome = primeiro_nome.replace('É','E')      
                                         primeiro_nome = primeiro_nome.replace('Ú','U')    
                                         primeiro_nome = primeiro_nome.replace('Ê','E')           
-                                        print("Primeiro nome esperado: " + primeiro_nome)
-                                        print("Primeiro nome encontrado na tela: " + primeiro_nome_na_tela)
+                                    
                                         if primeiro_nome_na_tela.upper() == primeiro_nome.upper():
-                                            print("Validação: Esperado " + primeiro_nome + " , encontrado " + primeiro_nome_na_tela + ".")
-                                            print("[SUCESSO] Validação confirmada!")
+                                            print("[VALIDAÇÃO] Esperado " + primeiro_nome + ", encontrado " + primeiro_nome_na_tela + ".")
+                                            print("[VALIDAÇÃO] Validação confirmada!")
                                             # Clicamos na linha inteira para selecionar
                                             codigo.click()
-                                            print("Credor selecionado com sucesso.")
+                                            print("[SUCESSO] Credor selecionado com sucesso.")
                                             
                                         else:
                                             print("[ERRO DE VALIDAÇÃO] O nome não corresponde ao esperado!")
-                                            raise Exception('Validação falhou: Esperado ' + primeiro_nome + " , encontrado " + primeiro_nome_na_tela + ".")
+                                            raise Exception('[ERRO DE VALIDAÇÃO] Esperado ' + primeiro_nome + " , encontrado " + primeiro_nome_na_tela + ".")
                                         
                                 except Exception as e:
                                         print(f"Ocorreu um erro durante a validação do credor: {e}")
                             
                             except:
-                                print("Não encontrei o CPF")
+                                print("[ATENÇÃO] Não encontrei o CPF")
                                 todos_os_textos = codigo.all_inner_texts()
                                 numeros_pc = []
                                     
                                 if not numeros_pc:
-                                    raise Exception("Nenhum número de CPF válido foi encontrado na lista de células.")
+                                    raise Exception("[ATENÇÃO] Nenhum número de CPF válido foi encontrado na lista de células.")
                     
                     manter_despesa_certificada.wait_for_load_state('networkidle', timeout=30000)
                     time.sleep(0.2)
@@ -579,16 +594,14 @@ with sync_playwright() as p:
                     manter_despesa_certificada.wait_for_load_state('networkidle', timeout=30000)
                     
                     try: 
-                        print("Verificando se a mensagem 'Documento já cadastrado' existe...")
                         erro_na_tela = manter_despesa_certificada.get_by_role("cell", name="Número Documento já cadastrado(a).", exact=True)
                         if erro_na_tela.is_visible():
                             documento_ja_cadastrado = True
                         if documento_ja_cadastrado:
-                            print("\n[AVISO] O documento já foi cadastrado anteriormente.")
+                            print("[AVISO] O documento já foi cadastrado anteriormente.")
                             print("O robô vai pular este item ou tomar uma ação alternativa.")
                         else:
-                            print("\n[SUCESSO] Nenhuma mensagem de erro encontrada.")
-                            print("Continuando com o fluxo normal da automação...")
+                            print("[SUCESSO] Nenhuma mensagem de erro encontrada.")
                             documento_ja_cadastrado = False
                     except Exception as e:
                         print(f"Ocorreu um erro durante a verificação do documento: {e}")
@@ -597,9 +610,9 @@ with sync_playwright() as p:
                     if documento_ja_cadastrado == True:
                         try:
                             despesa_certificada = "pesquisar no sigef"
-                            pagina1_backup.append([ug,gestao,processo_formatado,nome,cpf_formatado,valor,banco, agencia,conta,nota_de_empenho,despesa_certificada])
+                            pagina1_backup.append([ug,gestao,processo_formatado,nome,cpf_formatado,valor,banco, agencia,conta,nota_de_empenho,despesa_certificada,ainda_nao_foi_feito,ainda_nao_foi_feito,ainda_nao_foi_feito,data,operacao,data_formatada,agora])
                             pagina1.delete_rows(linha,1)
-                            pagina1.append([ug,gestao,processo_formatado,nome,cpf_formatado,valor,banco, agencia,conta,nota_de_empenho,despesa_certificada])
+                            pagina1.append([ug,gestao,processo_formatado,nome,cpf_formatado,valor,banco, agencia,conta,nota_de_empenho,despesa_certificada,ainda_nao_foi_feito,ainda_nao_foi_feito,ainda_nao_foi_feito,data,operacao,data_formatada,agora])
                             book.save(planilha)   
                         except:
                             book1.save("Pagamentos_Backup.xlsx")
@@ -613,16 +626,16 @@ with sync_playwright() as p:
                         numero_despesa_certificada.press('Control+KeyC')
                         despesa_certificada =  numero_despesa_certificada = pyperclip.paste()
                         despesa_certificada = "2025CE" + str(despesa_certificada)
-                        print(despesa_certificada)
-                    
+                        print(f"[SUCESSO] Despesa Certificada encontrada e copiada: '{despesa_certificada}'")
+
                         if despesa_certificada_teste == despesa_certificada:
-                            print("REPETIDO. Refazendo Despesa Certificada!")
+                            print("[REPETIDO] Refazendo Despesa Certificada!")
                             pagina1.delete_rows(linha,1)
                             book.save(planilha)
                             despesa_certificada = 'None'
                         else:
                             if despesa_certificada == 'despesa_certificada':
-                                print("DEU ALGUM ERRO. Refazendo Despesa Certificada!")
+                                print("[ERRO] Refazendo Despesa Certificada!")
                                 pagina1.delete_rows(linha,1)
                                 book.save(planilha)
                                 despesa_certificada = 'None'
@@ -631,9 +644,9 @@ with sync_playwright() as p:
                                     time.sleep(0.1)
                                 else:
                                     try:
-                                        pagina1_backup.append([ug,gestao,processo_formatado,nome,cpf_formatado,valor,banco, agencia,conta,nota_de_empenho,despesa_certificada])
+                                        pagina1_backup.append([ug,gestao,processo_formatado,nome,cpf_formatado,valor,banco, agencia,conta,nota_de_empenho,despesa_certificada,ainda_nao_foi_feito,ainda_nao_foi_feito,ainda_nao_foi_feito,data,operacao,data_formatada,agora])
                                         pagina1.delete_rows(linha,1)
-                                        pagina1.append([ug,gestao,processo_formatado,nome,cpf_formatado,valor,banco, agencia,conta,nota_de_empenho,despesa_certificada])
+                                        pagina1.append([ug,gestao,processo_formatado,nome,cpf_formatado,valor,banco, agencia,conta,nota_de_empenho,despesa_certificada,ainda_nao_foi_feito,ainda_nao_foi_feito,ainda_nao_foi_feito,data,operacao,data_formatada,agora])
                                         book.save(planilha)
                                     except:
                                         book1.save("Pagamentos_Backup.xlsx")
@@ -653,7 +666,7 @@ with sync_playwright() as p:
                 linha = linha + 1
                 documento_ja_cadastrado = False
  
-        print("Nenhuma despesa para certificar. Iniciando a liquidação...")
+        print("\nNenhuma despesa para certificar. Iniciando a liquidação...\n")
 
         ja_foi_certificado = True
         manter_despesa_certificada.close()
@@ -803,11 +816,12 @@ with sync_playwright() as p:
                         operacao = cell.value
                         operacao = str(operacao)
 
-                if nome != "None":
-                    print("Estou na linha " + str(linha) + " da planilha, referente ao servidor " + str(nome) + ".")
-
-                else:
-                    time.sleep(0)
+                #LENDO A DATA QUE DEVERÁ SER REALIZADO O PAGAMENTO
+                coluna = coluna + 1
+                for row in pagina.iter_rows(min_row=linha,max_col=coluna,max_row=linha):
+                    for cell in row:
+                        data_do_pagamento = cell.value
+                        data_do_pagamento = str(data_do_pagamento)
                     
                 if nome == "None":
                     if valor == "None":
@@ -821,7 +835,7 @@ with sync_playwright() as p:
                             cpf = cpf.replace('-','')
                             cpf_sem_ponto_virgula = int(cpf)
                         else: 
-                            print('CPF é inválido.')
+                            print('[ATENÇÃO] CPF é inválido.')
         
                         cpf_formatado = re.sub(r'(\d{3})(\d{3})(\d{3})(\d{2})', r'\1.\2.\3-\4', "{:011d}".format(int(cpf_sem_ponto_virgula)))                        
                         cpf = cpf_formatado
@@ -834,7 +848,7 @@ with sync_playwright() as p:
                     processo = processo.replace('/','')
                     processo_sem_pontos = int(processo)
                 else: 
-                    print('Processo é inválido.')
+                    print('[ATENÇÃO] Processo é inválido.')
                 
                 processo_formatado = re.sub(r'(\d{4})(\d{6})(\d{4})(\d{2})', r'\1.\2/\3-\4', "{:016d}".format(int(processo_sem_pontos))) 
                 
@@ -876,7 +890,7 @@ with sync_playwright() as p:
                         ja_foi_liquidado = True
         
                 if ja_foi_liquidado == False:
-                    texto_da_nl =  "Liquidação de Despesa: Pagamento para o(a) servidor(a) " + str(cpf_formatado) + " " + str(nome) + " referente à " + str(operacao) + " realizada no período de " + str(data) + ". Processo Administrativo n: " + str(processo_formatado) + "."
+                    texto_da_nl = "Liquidação de Despesa: Pagamento para o(a) servidor(a) " + str(cpf_formatado) + " " + str(nome) + " referente à " + str(operacao) + " realizada no período de " + str(data) + ". Processo Administrativo n: " + str(processo_formatado) + "."
 
 
                     if robo_deve_parar:
@@ -887,13 +901,19 @@ with sync_playwright() as p:
                         sys.exit()
                         
                     liquidar_despesa_certificada.wait_for_load_state('networkidle', timeout=30000)
-                    campo_unidade_gestora = liquidar_despesa_certificada.get_by_role("textbox", name="Secretaria de Estado de")
+                    campo_unidade_gestora = liquidar_despesa_certificada.locator("#txtCdUnidadeGestora")
                     campo_unidade_gestora.wait_for()
                     campo_unidade_gestora.press_sequentially(ug)
                     campo_gestao = liquidar_despesa_certificada.locator("#txtCdGestao_SIGEFPesquisa")
 
+                    #INFORMAÇÕES PRELIMINARES
+                    #HORA:
+                    agora = datetime.now()
+                    
                     if robo_deve_parar:
                         verificar_panico_e_sair(book)
+
+                    print("\nEstou na linha " + str(linha) + " da planilha, referente ao servidor " + str(nome) + ".")
 
                     campo_gestao.press_sequentially(gestao)
                     campo_despesa_certificada = liquidar_despesa_certificada.locator("#txtDespesaCertificadaNumero_SIGEFPesquisa")
@@ -906,7 +926,7 @@ with sync_playwright() as p:
                             verificar_panico_e_sair(book)
 
                     try:
-                            print("Procurando pela célula da Nota de Liquidação (NL)...")
+                            time.sleep(0)
                         
                     except:
                         ja_foi_liquidado = False
@@ -915,9 +935,26 @@ with sync_playwright() as p:
 
                         if robo_deve_parar:
                             verificar_panico_e_sair(book)
+
+                        if data != "None":
+                            if isinstance(data_do_pagamento,str):
+                                data_formatada = data_do_pagamento.replace('/','')
+                                data_formatada = data_formatada.replace('.','')
+                                data_formatada = data_formatada.replace('-','')
+                                data_formatada = data_formatada.replace(' ','')
+                                data_formatada = data_formatada.replace(',','')
+                                        
+                                try:
+                                    data_formatada = int(data_formatada)
+                                    data_formatada = re.sub(r'(\d{2})(\d{2})(\d{4})', r'\1/\2/\3', "{:08d}".format(int(data_formatada)))
+                                    data_foi_formatada = True
+                                except:
+                                    data_atual = date.today() 
+                                    data_formatada = data_atual.strftime("%d/%m/%Y")
+                                    data_foi_formatada = True
                             
                         data_vencimento = liquidar_despesa_certificada.locator("#txtDataVencimento_SIGEFData")
-                        data_vencimento.press_sequentially('h')
+                        data_vencimento.press_sequentially(data_formatada)
                         adicionar = liquidar_despesa_certificada.get_by_role("button", name="Adicionar Documento")
                         adicionar.click()
                         liquidar_despesa_certificada.wait_for_load_state('networkidle', timeout=30000)
@@ -981,8 +1018,7 @@ with sync_playwright() as p:
                             valor = valor.replace(' ','')
                         except:
                             time.sleep(0)
-                        
-                            
+                    
                         if value_valor_liquido == valor:
 
                             liquidar_despesa_certificada.wait_for_load_state('networkidle', timeout=30000)
@@ -1010,12 +1046,12 @@ with sync_playwright() as p:
                                 
                             try:
                                 botao_confirmar.click()
-                                print("Verificando a existência de mensagens de erro...")
+                                print("[VALIDAÇÃO] Verificando a existência de mensagens de erro...")
                                 try:
                                     erro = liquidar_despesa_certificada.get_by_text("Não é permitido liquidar da")
                                     erro_esta_visivel = erro.is_visible()
                                     if erro_esta_visivel:
-                                        print("[AVISO] Mensagem de erro detectada: 'Não é permitido liquidar da'.")
+                                        print("[ERRO DE VALIDAÇÃO] Mensagem de erro detectada: 'Não é permitido liquidar da'.")
                                         botao_voltar = liquidar_despesa_certificada.get_by_role("button", name="Retornar à Tela Anterior")
                                         botao_voltar.click()
                                         documento_ja_liquidado_mas_nao_salvo = True
@@ -1025,11 +1061,10 @@ with sync_playwright() as p:
                                 except:
                                         time.sleep(1)
                             except Exception as e:
-                                print(f"Ocorreu um erro inesperado durante a liquidação: {e}")
+                                print(f"[ERRO DE VALIDAÇÃO] Ocorreu um erro inesperado durante a liquidação: {e}")
 
                             try:
                                 liquidar_despesa_certificada.wait_for_load_state('networkidle', timeout=30000)
-                                print("Procurando pela célula da Nota de Liquidação (NL)...")
                                 padrao_da_nl = re.compile(r"^2025NL\d{6}$")
                                 celula_nl = liquidar_despesa_certificada.get_by_role("cell", name=padrao_da_nl)
                                 celula_nl.first.wait_for(state="visible", timeout=30000)
@@ -1048,11 +1083,10 @@ with sync_playwright() as p:
 
                             if liquidacao != "ERRO":
                                 liquidacao = str(liquidacao) 
-                                print(f"Valor final da variável 'liquidacao': {liquidacao}")
                                 try:
-                                        pagina2_backup.append([ug,gestao,processo_formatado,nome,cpf_formatado,valor,banco, agencia,conta,nota_de_empenho,despesa_certificada,liquidacao])
+                                        pagina2_backup.append([ug,gestao,processo_formatado,nome,cpf_formatado,valor,banco, agencia,conta,nota_de_empenho,despesa_certificada,liquidacao,ainda_nao_foi_feito,ainda_nao_foi_feito,data,operacao,data_formatada,agora])
                                         pagina2.delete_rows(linha,1)
-                                        pagina2.append([ug,gestao,processo_formatado,nome,cpf_formatado,valor,banco, agencia, conta,nota_de_empenho,despesa_certificada,liquidacao])
+                                        pagina2.append([ug,gestao,processo_formatado,nome,cpf_formatado,valor,banco, agencia,conta,nota_de_empenho,despesa_certificada,liquidacao,ainda_nao_foi_feito,ainda_nao_foi_feito,data,operacao,data_formatada,agora])
                                         book.save(planilha)
                                 except:           
                                         
@@ -1060,7 +1094,6 @@ with sync_playwright() as p:
                                         print("Deu algum erro ao salvar a planilha, a planilha de backup foi solicitada.")
                                         book1.close()
                                         sys.exit()
-
                         else:
 
                                 print("Deu algum erro!!")
@@ -1068,12 +1101,11 @@ with sync_playwright() as p:
                         
                         liquidacao = str(primeira_nl)
                         try:
-                                    pagina2_backup.append([ug,gestao,processo_formatado,nome,cpf_formatado,valor,banco, agencia,conta,nota_de_empenho,despesa_certificada,liquidacao])
+                                    pagina2_backup.append([ug,gestao,processo_formatado,nome,cpf_formatado,valor,banco, agencia,conta,nota_de_empenho,despesa_certificada,liquidacao,ainda_nao_foi_feito,ainda_nao_foi_feito,data,operacao,data_formatada,agora])
                                     pagina2.delete_rows(linha,1)
-                                    pagina2.append([ug,gestao,processo_formatado,nome,cpf_formatado,valor,banco, agencia, conta,nota_de_empenho,despesa_certificada,liquidacao])
+                                    pagina2.append([ug,gestao,processo_formatado,nome,cpf_formatado,valor,banco, agencia,conta,nota_de_empenho,despesa_certificada,liquidacao,ainda_nao_foi_feito,ainda_nao_foi_feito,data,operacao,data_formatada,agora])
                                     book.save(planilha)
-                        except:
-                                                                    
+                        except:                              
                                     book1.save("Pagamentos_Backup.xlsx")
                                     print("Deu algum erro ao salvar a planilha, a planilha de backup foi solicitada.")
                                     book1.close()
@@ -1086,15 +1118,14 @@ with sync_playwright() as p:
                 linha = linha + 1
                 coluna = 1
 
-
 try:
     liquidar_despesa_certificada.close()
 except:
     time.sleep(0)
 
-print("Fim das liquidações.")
+print("\nFim das liquidações.")
 if book:
     book.close()
-print("\nScript finalizado. A janela de depuracao permanece aberta.")
+print("\nScript finalizado. A janela de depuração permanece aberta.")
 keyboard.remove_hotkey(tecla_de_panico) 
 pyautogui.alert(text='Encerrei por aqui.', title='Fim', button='OK')
