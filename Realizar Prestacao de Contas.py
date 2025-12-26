@@ -112,18 +112,18 @@ with sync_playwright() as p:
 
             if baixas <= limite:
                 #AQUELAS JANELAS QUE PERGUNTAM A UG, GESTAO E EMPENHO ESTÃO AQUI:
-                #ug = pyautogui.prompt(text='Digite a UG', title='Unidade Gestora' , default='150001')
-                #gestao = pyautogui.prompt(text='Digite a Gestão', title='Gestão' , default='00001')
-                #empenho = pyautogui.prompt(text='Digite o número da Nota de Empenho', title='Nota de Empenho' , default='0')
-                #exercicio = pyautogui.confirm(text='Escolha o Exercício Financeiro', title='Exercício Financeiro' , buttons=['2024', '2025'])
+                unidade_gestora = pyautogui.prompt(text='Digite a UG', title='Unidade Gestora' , default='150001')
+                gestao = pyautogui.prompt(text='Digite a Gestão', title='Gestão' , default='00001')
+                numero_empenho = pyautogui.prompt(text='Digite o número da Nota de Empenho', title='Nota de Empenho' , default='0')
+                exercicio_financeiro = pyautogui.confirm(text='Escolha o Exercício Financeiro', title='Exercício Financeiro' , buttons=['2024', '2025'])
                 #unidade_gestora = str(input('Digite a UG: '))
                 #gestao = str(input('Digite a Gestão: '))
                 #numero_empenho = str(input('Digite o número da Nota de Empenho: '))
                 #exercicio_financeiro = str(input('Digite o Exercício Financeiro: '))
-                unidade_gestora = '150001'
-                gestao = '00001'
-                numero_empenho = '154'
-                exercicio_financeiro = '2025'
+                #unidade_gestora = '150001'
+                #gestao = '00001'
+                #numero_empenho = '154'
+                #exercicio_financeiro = '2025'
             else:
                 pyautogui.alert(text='Deu algum erro.', title='Erro', button='OK')
 

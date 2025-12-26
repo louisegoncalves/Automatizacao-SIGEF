@@ -20,7 +20,7 @@ from datetime import date
 from datetime import datetime
 
 #QUAL PLANILHA VAI SER UTILIZADA?
-planilha = "Pagamentos - voluntariar dezembro.xlsx"
+planilha = "076122 e 076129.xlsx"
 #planilha = "Pagamentos.xlsx"
 
 #VARIÁVEIS IMPORTANTES
@@ -216,107 +216,7 @@ with sync_playwright() as p:
                     banco = cell.value
                     banco = str(banco)
                     
-            banco_backup = banco
-            try:
-                banco = banco.replace(' ','')
-            except:
-                time.sleep(0)
-            try:
-                    banco_formatado = re.sub(r'(\d{2})(\d{1})', r'\1-\2', "{:03d}".format(int(banco)))
-                    banco_formatado = banco_formatado.replace("-","")
-                    deu_certo_a_formatacao_do_banco = True
-                    banco_deduzido = False
-            except:
-                    deu_certo_a_formatacao_do_banco = False
-                    time.sleep(0)
-                    
-            if deu_certo_a_formatacao_do_banco == False:
-                        banco = banco.upper()
-                        if "BRASIL" in banco:
-                            banco = '001'
-                            banco_deduzido = True
-                            deu_certo_a_formatacao_do_banco = False
-                        if "NEXT" in banco:
-                            banco = '237'
-                            banco_deduzido = True
-                            deu_certo_a_formatacao_do_banco = False
-                        if "BRADESCO" in banco:
-                            banco = '237'
-                            banco_deduzido = True
-                            deu_certo_a_formatacao_do_banco = False
-                        if "NUBANK" in banco:
-                            banco = '260' 
-                            banco_deduzido = True
-                            deu_certo_a_formatacao_do_banco = False
-                        if "NÚBANK" in banco:
-                            banco = '260'   
-                            banco_deduzido = True  
-                            deu_certo_a_formatacao_do_banco = False                    
-                        if "COOB" in banco:
-                            banco = '756'    
-                            banco_deduzido = True   
-                            deu_certo_a_formatacao_do_banco = False      
-                        if "SICOOB" in banco:
-                            banco = '756'    
-                            banco_deduzido = True   
-                            deu_certo_a_formatacao_do_banco = False       
-                        if "BANCOOB" in banco:
-                            banco = '756'    
-                            banco_deduzido = True   
-                            deu_certo_a_formatacao_do_banco = False          
-                        if "CAIXA" in banco:
-                            banco = '104'    
-                            banco_deduzido = True    
-                            deu_certo_a_formatacao_do_banco = False                
-                        if "CEF" in banco:
-                            banco = '104'  
-                            banco_deduzido = True    
-                            deu_certo_a_formatacao_do_banco = False                  
-                        if "ITA" in banco:
-                            banco = '341'  
-                            banco_deduzido = True    
-                            deu_certo_a_formatacao_do_banco = False                  
-                        if "INTER" in banco:
-                            banco = '077'  
-                            banco_deduzido = True 
-                            deu_certo_a_formatacao_do_banco = False                     
-                        if "BB" in banco:
-                            banco = '001'  
-                            banco_deduzido = True     
-                            deu_certo_a_formatacao_do_banco = False                 
-                        if "PIC" in banco:
-                            banco = '380'  
-                            banco_deduzido = True    
-                            deu_certo_a_formatacao_do_banco = False     
-                        if "PICPAY" in banco:
-                            banco = '380'  
-                            banco_deduzido = True    
-                            deu_certo_a_formatacao_do_banco = False                
-                        if "C6" in banco:
-                            banco = '336'  
-                            banco_deduzido = True  
-                            deu_certo_a_formatacao_do_banco = False                    
-                        if "CRED" in banco:
-                            banco = '097'   
-                            banco_deduzido = True    
-                            deu_certo_a_formatacao_do_banco = False        
-                        if "CREDISIS" in banco:
-                            banco = '097'   
-                            banco_deduzido = True    
-                            deu_certo_a_formatacao_do_banco = False          
-                        if "SANTANDER" in banco:
-                            banco = '033'
-                            banco_deduzido = True
-                            deu_certo_a_formatacao_do_banco = False
-                        if "PAN" in banco:
-                            banco = '623'
-                            banco_deduzido = True
-                            deu_certo_a_formatacao_do_banco = False
-            else:
-                        banco = banco_formatado
-                        
-            if banco_deduzido == False:
-                        banco = '001'
+            
 
             #LENDO A AGENCIA
             coluna = coluna + 1
@@ -387,6 +287,8 @@ with sync_playwright() as p:
                 for cell in row:
                     data_do_pagamento = cell.value
                     data_do_pagamento = str(data_do_pagamento)
+            
+
             
 
             if data != "None":
@@ -491,9 +393,117 @@ with sync_playwright() as p:
                 nota_de_empenho = nota_de_empenho.replace('0000NE',exercicio_NE)
                 
             
+
             if ja_foi_liquidado == True:
    
                 if ja_foi_preparado == False:
+
+                    banco_backup = banco
+                    try:
+                        banco = banco.replace(' ','')
+                    except:
+                        time.sleep(0)
+                
+                    try:
+                        banco_formatado = re.sub(r'(\d{2})(\d{1})', r'\1-\2', "{:03d}".format(int(banco)))
+                        banco_formatado = banco_formatado.replace("-","")
+                        deu_certo_a_formatacao_do_banco = True
+                        banco_deduzido = False
+
+                    except:
+                        deu_certo_a_formatacao_do_banco = False
+                        time.sleep(0)
+
+
+                    if deu_certo_a_formatacao_do_banco == False:
+                                banco = banco.upper()
+                                if "BRASIL" in banco:
+                                    banco = '001'
+                                    banco_deduzido = True
+                                    deu_certo_a_formatacao_do_banco = False
+                                if "NEXT" in banco:
+                                    banco = '237'
+                                    banco_deduzido = True
+                                    deu_certo_a_formatacao_do_banco = False
+                                if "BRADESCO" in banco:
+                                    banco = '237'
+                                    banco_deduzido = True
+                                    deu_certo_a_formatacao_do_banco = False
+                                if "NUBANK" in banco:
+                                    banco = '260' 
+                                    banco_deduzido = True
+                                    deu_certo_a_formatacao_do_banco = False
+                                if "NÚBANK" in banco:
+                                    banco = '260'   
+                                    banco_deduzido = True  
+                                    deu_certo_a_formatacao_do_banco = False                    
+                                if "COOB" in banco:
+                                    banco = '756'    
+                                    banco_deduzido = True   
+                                    deu_certo_a_formatacao_do_banco = False      
+                                if "SICOOB" in banco:
+                                    banco = '756'    
+                                    banco_deduzido = True   
+                                    deu_certo_a_formatacao_do_banco = False       
+                                if "BANCOOB" in banco:
+                                    banco = '756'    
+                                    banco_deduzido = True   
+                                    deu_certo_a_formatacao_do_banco = False          
+                                if "CAIXA" in banco:
+                                    banco = '104'    
+                                    banco_deduzido = True    
+                                    deu_certo_a_formatacao_do_banco = False                
+                                if "CEF" in banco:
+                                    banco = '104'  
+                                    banco_deduzido = True    
+                                    deu_certo_a_formatacao_do_banco = False                  
+                                if "ITA" in banco:
+                                    banco = '341'  
+                                    banco_deduzido = True    
+                                    deu_certo_a_formatacao_do_banco = False                  
+                                if "INTER" in banco:
+                                    banco = '077'  
+                                    banco_deduzido = True 
+                                    deu_certo_a_formatacao_do_banco = False                     
+                                if "BB" in banco:
+                                    banco = '001'  
+                                    banco_deduzido = True     
+                                    deu_certo_a_formatacao_do_banco = False                 
+                                if "PIC" in banco:
+                                    banco = '380'  
+                                    banco_deduzido = True    
+                                    deu_certo_a_formatacao_do_banco = False     
+                                if "PICPAY" in banco:
+                                    banco = '380'  
+                                    banco_deduzido = True    
+                                    deu_certo_a_formatacao_do_banco = False                
+                                if "C6" in banco:
+                                    banco = '336'  
+                                    banco_deduzido = True  
+                                    deu_certo_a_formatacao_do_banco = False                    
+                                if "CRED" in banco:
+                                    banco = '097'   
+                                    banco_deduzido = True    
+                                    deu_certo_a_formatacao_do_banco = False        
+                                if "CREDISIS" in banco:
+                                    banco = '097'   
+                                    banco_deduzido = True    
+                                    deu_certo_a_formatacao_do_banco = False          
+                                if "SANTANDER" in banco:
+                                    banco = '033'
+                                    banco_deduzido = True
+                                    deu_certo_a_formatacao_do_banco = False
+                                if "PAN" in banco:
+                                    banco = '623'
+                                    banco_deduzido = True
+                                    deu_certo_a_formatacao_do_banco = False
+                                
+                    else:
+                                banco = banco_formatado
+                                
+                                
+                    if banco_deduzido == False and deu_certo_a_formatacao_do_banco== False:
+                            banco = '001'
 
                     print("\nEstou na linha " + str(linha) + " da planilha, referente ao servidor " + str(nome) + ".")
 
@@ -615,21 +625,56 @@ with sync_playwright() as p:
                         botao_confirmar.click()
                         time.sleep(0.5)
                         pesquisar_domicilio_bancario.wait_for_load_state('networkidle', timeout=30000)
+                        
                         try:
-                            conta_nova = str(conta)
-                            conta_nova = conta.replace("-",'')
-                            conta_nova = conta.replace("-",'')
-                            conta_nova = conta.upper()
+                            try:
+                                conta_nova = str(conta)
+                            except:
+                                time.sleep(0)
+                            try:
+                                conta_nova = conta.replace("-",'')
+                            except:
+                                time.sleep(0)
+                            try:
+                                conta_nova = conta_nova.replace("-",'')
+                            except:
+                                time.sleep(0)
+                            try:
+                                conta_nova = conta_nova.replace(".",'')
+                            except:
+                                time.sleep(0)
+                            try:
+                                conta_nova = conta_nova.replace(" ",'')
+                            except:
+                                time.sleep(0)
+                            try:
+                                conta_nova = conta_nova.upper()
+                            except:
+                                time.sleep(0)
 
                             conta_formatada_com_traco = re.sub(r'(.{9})(.{1})', r'\1-\2', "{:0>10}".format(conta_nova))
-                            conta_formatada_sem_traco = conta_formatada_com_traco.replace("-",'')
+                            #print(conta_formatada_com_traco)
+                            try:
+                                conta_formatada_sem_traco = conta_formatada_com_traco.replace("-",'')
+                            except:
+                                time.sleep(0)
+                            
                             
                             try:
+                                
                                 selecionar_banco = pesquisar_domicilio_bancario.get_by_role("cell", name=conta_formatada_sem_traco, exact=True)
-                                selecionar_banco.wait_for(timeout=1000)
-                            except:                                
-                                selecionar_banco = pesquisar_domicilio_bancario.get_by_role("cell", name=conta_formatada_com_traco, exact=True)
-                                selecionar_banco.wait_for(timeout=1000)
+                                selecionar_banco.wait_for(timeout=1500)
+                            except:  
+                                try:
+                                    
+                                    selecionar_banco = pesquisar_domicilio_bancario.get_by_role("cell", name=conta_formatada_sem_traco, exact = False)
+                                    selecionar_banco.wait_for(timeout=1500)                              
+                                except:
+                                    
+                                    selecionar_banco = pesquisar_domicilio_bancario.get_by_role("cell", name=conta_formatada_com_traco, exact=True)
+                                    selecionar_banco.wait_for(timeout=1500)
+
+  
                             
                             if selecionar_banco.is_visible():
                                 conta_que_peguei = selecionar_banco.inner_text()
@@ -640,9 +685,11 @@ with sync_playwright() as p:
                           
                             #linha_correta = pesquisar_domicilio_bancario.locator("tr").filter(has_text=conta_formatada_sem_traco)
                             #linha_correta.wait_for(timeout=2000)
-                            linha_correta = pesquisar_domicilio_bancario.locator("tr[class*='GridLinha']").filter(has_text=conta_formatada_sem_traco)
-                        
-                            #linha_correta = pesquisar_domicilio_bancario.get_by_role("cell", name=conta_formatada_sem_traco, exact=True)
+                            try:
+                                linha_correta = pesquisar_domicilio_bancario.locator("tr[class*='GridLinha']").filter(has_text=conta_formatada_sem_traco)
+                                
+                            except:
+                                linha_correta = pesquisar_domicilio_bancario.get_by_role("cell", name=conta_formatada_sem_traco, exact=True)
                             
                             print("[VALIDAÇÃO] Linha da conta encontrada na tabela.")
 
@@ -655,10 +702,12 @@ with sync_playwright() as p:
                                 conta_que_peguei = conta_que_peguei.replace(".",'')
                             except: 
                                 time.sleep(0)
+                           
 
                             if conta_que_peguei == conta_formatada_sem_traco:
                                 time.sleep(0.5)
                                 seletor_onclick = f'td[onclick*="{conta_formatada_sem_traco}"]'
+                                
                                 try:
                                     celula_banco_para_clicar = linha_correta.first.get_by_role("cell", name=banco, exact=True)
                                     celula_banco_para_clicar.wait_for(timeout=1000)

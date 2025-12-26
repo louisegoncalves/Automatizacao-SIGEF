@@ -21,7 +21,7 @@ from datetime import datetime
 import sys
 
 #QUAL PLANILHA VAI SER UTILIZADA?
-planilha = "Pagamentos - voluntariar dezembro.xlsx"
+planilha = "076122 e 076129.xlsx"
 #planilha = "Pagamentos.xlsx"
 
 #VARIÁVEIS IMPORTANTES
@@ -957,10 +957,24 @@ with sync_playwright() as p:
                         data_vencimento.press_sequentially(data_formatada)
                         adicionar = liquidar_despesa_certificada.get_by_role("button", name="Adicionar Documento")
                         adicionar.click()
+
+                        time.sleep(0.3)
+
+                        erro1 = liquidar_despesa_certificada.get_by_text("Data Vencimento está")
+                        
+                        erro2 = liquidar_despesa_certificada.get_by_text("O campo Data Vencimento é")
+                        
+
+                        if erro1.is_visible():
+                            data_vencimento.press('Backspace')
+                            data_vencimento.press_sequentially(data_formatada)
+                        if erro2.is_visible():
+                            data_vencimento.press_sequentially(data_formatada)
+
                         liquidar_despesa_certificada.wait_for_load_state('networkidle', timeout=30000)
                         data_referencia = liquidar_despesa_certificada.locator("#txtDtReferenciaId_SIGEFData")
                         data_referencia.wait_for()
-                        data_referencia.press_sequentially('h')
+                        data_referencia.press_sequentially(data_formatada)
                         ponto_interrogacao = liquidar_despesa_certificada.locator("#txtNotaEmpenhoNumeroId_lnkBtnPesquisa")
 
                         if robo_deve_parar:
@@ -1018,6 +1032,13 @@ with sync_playwright() as p:
                             valor = valor.replace(' ','')
                         except:
                             time.sleep(0)
+                        try:
+                            valor = valor.replace('R$','')
+                        except:
+                            time.sleep(0)
+
+                        print(value_valor_liquido)
+                        print(valor)
                     
                         if value_valor_liquido == valor:
 

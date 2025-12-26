@@ -1,5 +1,5 @@
 #OLÁ!
-#PROCEDIMENTO: CERTIFICAR E LIQUIDAR;
+#PROCEDIMENTO: CERTIFICAR, LIQUIDAR, SOLICITAR REPASSE FINANCEIRO E PREPARAR PAGAMENTO;
 #POR: LOUISE-SESDEC;
 #ALTERAÇÕES NO CÓDIGO PODEM SER ACESSADAS NO MEU GITHUB: <https://github.com/louisegoncalves/Automatizacao-SIGEF>.
 
@@ -21,8 +21,8 @@ from datetime import datetime
 import sys
 
 #QUAL PLANILHA VAI SER UTILIZADA?
-#planilha = "Pagamentos - voluntariar novembro.xlsx"
-planilha = "Pagamentos.xlsx"
+planilha = "Pagamentos - voluntariar novembro.xlsx"
+#planilha = "Pagamentos.xlsx"
 
 #VARIÁVEIS IMPORTANTES
 robo_deve_parar = False
@@ -83,7 +83,7 @@ except:
         print("Erro na planilha de backup.")
 
 #SE QUISER DESATIVAR AQUELA JANELA DO COMEÇO PODE EXCLUIR ELA AQUI:
-pyautogui.alert(text='Procedimento: Certificar, Liquidar e Preparar Pagamento.', title='Início', button='OK')
+pyautogui.alert(text='Procedimento: Certificar, Liquidar, Solicitar Repasse Financeiro e Preparar Pagamento.', title='Início', button='OK')
 
 #FUNÇÃO QUE SERÁ CHAMADA PELA TECLA DE PANICO
 def parar_execucao():
@@ -1672,4 +1672,3 @@ except:
 print("\nScript finalizado. A janela de depuracao permanece aberta.") 
 pyautogui.alert(text='Encerrei por aqui.', title='Fim', button='OK')
 sys.exit()
-

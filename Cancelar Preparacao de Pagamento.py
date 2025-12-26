@@ -127,6 +127,7 @@ with sync_playwright() as p:
                 preparando_pagamento = True
             else:
                 preparando_pagamento = False
+                sys.exit()
 
             if robo_deve_parar:
                 verificar_panico_e_sair(book)
