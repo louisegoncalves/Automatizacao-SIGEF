@@ -21,7 +21,7 @@ from datetime import datetime
 import sys
 
 #QUAL PLANILHA VAI SER UTILIZADA?
-planilha = "076122 e 076129.xlsx"
+planilha = "Pagamentos.xlsx"
 #planilha = "Pagamentos.xlsx"
 
 #VARIÁVEIS IMPORTANTES
@@ -961,15 +961,40 @@ with sync_playwright() as p:
                         time.sleep(0.3)
 
                         erro1 = liquidar_despesa_certificada.get_by_text("Data Vencimento está")
-                        
                         erro2 = liquidar_despesa_certificada.get_by_text("O campo Data Vencimento é")
+                        erro3 = liquidar_despesa_certificada.get_by_text("O(A) Data Vencimento")
                         
 
                         if erro1.is_visible():
                             data_vencimento.press('Backspace')
                             data_vencimento.press_sequentially(data_formatada)
+                            adicionar.click()
                         if erro2.is_visible():
                             data_vencimento.press_sequentially(data_formatada)
+                            adicionar.click()
+                        if erro3.is_visible():
+                            data_vencimento.press('Backspace')
+                            data_vencimento.press_sequentially(data_formatada)
+                            adicionar.click()
+
+                        time.sleep(0.3)
+
+                        erro1 = liquidar_despesa_certificada.get_by_text("Data Vencimento está")
+                        erro2 = liquidar_despesa_certificada.get_by_text("O campo Data Vencimento é")
+                        erro3 = liquidar_despesa_certificada.get_by_text("O(A) Data Vencimento")
+                        
+
+                        if erro1.is_visible():
+                            data_vencimento.press('Backspace')
+                            data_vencimento.press_sequentially(data_formatada)
+                            adicionar.click()
+                        if erro2.is_visible():
+                            data_vencimento.press_sequentially(data_formatada)
+                            adicionar.click()
+                        if erro3.is_visible():
+                            data_vencimento.press('Backspace')
+                            data_vencimento.press_sequentially(data_formatada)
+                            adicionar.click()
 
                         liquidar_despesa_certificada.wait_for_load_state('networkidle', timeout=30000)
                         data_referencia = liquidar_despesa_certificada.locator("#txtDtReferenciaId_SIGEFData")
@@ -999,6 +1024,7 @@ with sync_playwright() as p:
                         liquidar_despesa_certificada.wait_for_load_state('networkidle', timeout=30000)
                         valor_bruto = liquidar_despesa_certificada.locator("#txtValorBrutoId")
                         valor_bruto.wait_for()
+
                         valor = str(valor)
                         try:
                             time.sleep(0.3)
@@ -1037,8 +1063,6 @@ with sync_playwright() as p:
                         except:
                             time.sleep(0)
 
-                        print(value_valor_liquido)
-                        print(valor)
                     
                         if value_valor_liquido == valor:
 
