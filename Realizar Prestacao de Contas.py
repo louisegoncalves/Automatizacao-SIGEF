@@ -19,11 +19,12 @@ import time
 import sys
 
 #VARIÁVEIS IMPORTANTES
-limite = 500
+limite = 3000
 baixas = 0
 robo_deve_parar = False
 numero_nl = None
 numero_nl2 = None
+data_da_operacao = "30/12/2025"
 
 #PLANILHA NO EXCEL:
 try:
@@ -112,18 +113,18 @@ with sync_playwright() as p:
 
             if baixas <= limite:
                 #AQUELAS JANELAS QUE PERGUNTAM A UG, GESTAO E EMPENHO ESTÃO AQUI:
-                unidade_gestora = pyautogui.prompt(text='Digite a UG', title='Unidade Gestora' , default='150001')
-                gestao = pyautogui.prompt(text='Digite a Gestão', title='Gestão' , default='00001')
-                numero_empenho = pyautogui.prompt(text='Digite o número da Nota de Empenho', title='Nota de Empenho' , default='0')
-                exercicio_financeiro = pyautogui.confirm(text='Escolha o Exercício Financeiro', title='Exercício Financeiro' , buttons=['2024', '2025'])
+                #unidade_gestora = pyautogui.prompt(text='Digite a UG', title='Unidade Gestora' , default='150001')
+                #gestao = pyautogui.prompt(text='Digite a Gestão', title='Gestão' , default='00001')
+                #numero_empenho = pyautogui.prompt(text='Digite o número da Nota de Empenho', title='Nota de Empenho' , default='0')
+                #exercicio_financeiro = pyautogui.confirm(text='Escolha o Exercício Financeiro', title='Exercício Financeiro' , buttons=['2024', '2025'])
                 #unidade_gestora = str(input('Digite a UG: '))
                 #gestao = str(input('Digite a Gestão: '))
                 #numero_empenho = str(input('Digite o número da Nota de Empenho: '))
                 #exercicio_financeiro = str(input('Digite o Exercício Financeiro: '))
-                #unidade_gestora = '150001'
-                #gestao = '00001'
-                #numero_empenho = '154'
-                #exercicio_financeiro = '2025'
+                unidade_gestora = '150001'
+                gestao = '00001'
+                numero_empenho = '154'
+                exercicio_financeiro = '2025'
             else:
                 pyautogui.alert(text='Deu algum erro.', title='Erro', button='OK')
 
@@ -162,19 +163,20 @@ with sync_playwright() as p:
                         verificar_panico_e_sair(book)
 
                     selecionar_prestacao_contas = popup_info.value
-                    selecionar_prestacao_contas.wait_for_load_state('networkidle', timeout=30000)
+                    selecionar_prestacao_contas.wait_for_load_state('networkidle', timeout=10000)
                     preencher_numero_empenho = selecionar_prestacao_contas.locator("#txtNotaEmpenho2_SIGEFPesquisa")
                     preencher_numero_empenho.wait_for()
-                    time.sleep(0.3)
+                    selecionar_prestacao_contas.wait_for_load_state('networkidle', timeout=10000)
                     preencher_numero_empenho.dblclick()
                     preencher_numero_empenho.press('Delete')
                     preencher_numero_empenho.press_sequentially(numero_empenho)
+                    selecionar_prestacao_contas.wait_for_load_state('networkidle', timeout=10000)
                     preencher_exercicio = selecionar_prestacao_contas.locator("#txtNEAno")
                     preencher_exercicio.dblclick()
                     preencher_exercicio.press('Delete')
                     preencher_exercicio.press_sequentially(exercicio_financeiro)
                     situacao_prestacao_contas = selecionar_prestacao_contas.locator("#cboSituacao")
-                    situacao_prestacao_contas.select_option(label="Paga")
+                    #situacao_prestacao_contas.select_option(label="Paga")
                     botao_confirmar = selecionar_prestacao_contas.get_by_role("button", name="Confirmar a Consulta")
                     botao_confirmar.click()
                     try:
@@ -267,15 +269,24 @@ with sync_playwright() as p:
                 situacao = realizar_prestacao_contas.locator('#txtSituacaoPrestacaoContas')
                 situacao = situacao.input_value()
 
+                numero_nl = "Faltou!"
+                numero_nl2 = "Faltou!"
+
                 while situacao != "Baixa Regular":
+
+
 
                     if robo_deve_parar:
                         verificar_panico_e_sair(book)
+
+                    realizar_prestacao_contas.pause()
                         
+                    realizar_prestacao_contas.wait_for_load_state('networkidle', timeout=10000) 
                     situacao = realizar_prestacao_contas.locator('#txtSituacaoPrestacaoContas')
                     situacao = situacao.input_value()
                     data = realizar_prestacao_contas.locator("#txtDataPrestacaoContas_SIGEFData")
-                    data.press_sequentially('h')
+                    data.press_sequentially(data_da_operacao)
+                    realizar_prestacao_contas.wait_for_load_state('networkidle', timeout=10000) 
                     processo_spp = realizar_prestacao_contas.locator("#txtProcessoSPP_SIGEFPesquisa")
                     processo_spp.press_sequentially('0')
                     observacao = realizar_prestacao_contas.locator("#txtObservacao")
@@ -283,21 +294,28 @@ with sync_playwright() as p:
                     botao_confirmar = realizar_prestacao_contas.get_by_role("button", name="Confirmar a Operação")
                     botao_consultar = realizar_prestacao_contas.get_by_role("button", name="Consultar o Registro")
                     botao_limpar = realizar_prestacao_contas.get_by_role("link", name="Limpar a Tela")
-                    
+                    erro1 = realizar_prestacao_contas.get_by_role("cell", name="O campo Data Prestação Contas é obrigatório.", exact=True)
+                    erro2 = realizar_prestacao_contas.get_by_role("cell", name="O campo Processo SPP é obrigatório.", exact=True)
+                    erro3 =  realizar_prestacao_contas.get_by_role("cell", name="O campo Observação é obrigatório.", exact=True)
+                    erro4 = realizar_prestacao_contas.get_by_text("A Prestação de Contas está")
+                    erro5 = realizar_prestacao_contas.get_by_text("O ano da data de referência")
+
                     if situacao == 'Paga':
+                        
                         if robo_deve_parar:
                             numero_nl = "Não foi feita!" 
                             numero_nl2 = "Não foi feita!"
                             verificar_panico_e_sair(book)
 
-                        print('1 PASSO: Prestacao de contas ' + prestacao_contas + ' do credor ' + credor + '.')
+                        print('1º PASSO: Prestacao de contas ' + prestacao_contas + ' do credor ' + credor + '.')
                         operacao.select_option(label="Entregue")
-                        time.sleep(0.3)
+                        realizar_prestacao_contas.wait_for_load_state('networkidle', timeout=10000) 
                         observacao.press_sequentially("1º Passo: Entregue. Prestação de Contas de " + instrumento + ", Natureza da Despesa: " + natureza + ", em nome do Credor " + credor + ", Despesa Certificada: " + despesa_certificada + ", Nota Liquidação: " + nota_liquidacao + ", Preparação de Pagamento: " + preparacao_pagamento + ", Nota de Empenho: " + nota_empenho + ".")
                         botao_confirmar = realizar_prestacao_contas.get_by_role("button", name="Confirmar a Operação")
                         botao_confirmar.wait_for()
                         botao_confirmar.click()
-                        realizar_prestacao_contas.wait_for_load_state('networkidle', timeout=30000)      
+                        realizar_prestacao_contas.wait_for_load_state('networkidle', timeout=10000)     
+                        
                         try:
                             caixa_mensagem_sucesso = realizar_prestacao_contas.locator(".SIGEFMensagemSucesso")
                             caixa_mensagem_sucesso.wait_for(timeout=10000)
@@ -305,10 +323,10 @@ with sync_playwright() as p:
                             if "O número gerado foi" in texto_completo1:
                                 numero_nl = texto_completo1.split("foi ")[1]
                                 numero_nl = numero_nl.strip('.')
-                            botao_consultar = realizar_prestacao_contas.get_by_role("button", name="Consultar o Registro")
-                            botao_consultar.wait_for()
-                            botao_consultar.click()
-                            realizar_prestacao_contas.wait_for_load_state('networkidle', timeout=30000)
+                                botao_consultar = realizar_prestacao_contas.get_by_role("button", name="Consultar o Registro")
+                                botao_consultar.wait_for()
+                                botao_consultar.click()
+                                realizar_prestacao_contas.wait_for_load_state('networkidle', timeout=10000)
                         except:
                             try:
                                 caixa_mensagem_sucesso = realizar_prestacao_contas.locator(".SIGEFMensagemSucesso")
@@ -317,10 +335,10 @@ with sync_playwright() as p:
                                 if "O número gerado foi" in texto_completo1:
                                     numero_nl = texto_completo1.split("foi ")[1]
                                     numero_nl = numero_nl.strip('.')
-                                botao_consultar = realizar_prestacao_contas.get_by_role("button", name="Consultar o Registro")
-                                botao_consultar.wait_for()
-                                botao_consultar.click()
-                                realizar_prestacao_contas.wait_for_load_state('networkidle', timeout=30000)
+                                    botao_consultar = realizar_prestacao_contas.get_by_role("button", name="Consultar o Registro")
+                                    botao_consultar.wait_for()
+                                    botao_consultar.click()
+                                    realizar_prestacao_contas.wait_for_load_state('networkidle', timeout=10000)
                             except:
                                 botao_consultar = realizar_prestacao_contas.get_by_role("button", name="Consultar o Registro")
                                 botao_consultar.wait_for()
@@ -332,6 +350,98 @@ with sync_playwright() as p:
                                 book.save('Planilha de Baixas.xlsx')
                             verificar_panico_e_sair(book)
 
+                    if numero_nl == "Faltou!":
+
+                        situacao = realizar_prestacao_contas.locator('#txtSituacaoPrestacaoContas')
+                        situacao = situacao.input_value()
+
+
+                        print('oi')
+                        
+                        if situacao == "Entregue":
+                            
+                            if robo_deve_parar:
+                                verificar_panico_e_sair(book)
+
+                            print('Estorno: Prestacao de contas ' + prestacao_contas + ' do credor ' + credor + '.')
+                            realizar_prestacao_contas.wait_for_load_state('networkidle', timeout=10000) 
+                            operacao = realizar_prestacao_contas.locator("#cboOperacao")
+                            operacao.select_option(label="Paga")
+                            realizar_prestacao_contas.wait_for_load_state('networkidle', timeout=10000) 
+                            observacao.press_sequentially("Estorno, registro de prestação de contas de diárias de Entregue para Paga.")
+                            botao_confirmar = realizar_prestacao_contas.get_by_role("button", name="Confirmar a Operação")
+                            botao_confirmar.wait_for()
+                            botao_confirmar.click()
+                            realizar_prestacao_contas.wait_for_load_state('networkidle', timeout=10000)
+                            botao_consultar = realizar_prestacao_contas.get_by_role("button", name="Consultar o Registro")
+                            botao_consultar.wait_for()
+                            botao_consultar.click()
+                            realizar_prestacao_contas.wait_for_load_state('networkidle', timeout=10000)
+                            if robo_deve_parar:
+                                verificar_panico_e_sair(book)
+
+                            situacao = realizar_prestacao_contas.locator('#txtSituacaoPrestacaoContas')
+                            situacao = situacao.input_value()
+
+                        if situacao == "Em Análise":
+                                
+                                if robo_deve_parar:
+                                    verificar_panico_e_sair(book)
+
+                                realizar_prestacao_contas.wait_for_load_state('networkidle', timeout=10000)
+                                print('Estorno: Prestacao de contas ' + prestacao_contas + ' do credor ' + credor + '.')
+                                data = realizar_prestacao_contas.locator("#txtDataPrestacaoContas_SIGEFData")
+                                data.press_sequentially(data_da_operacao)
+                                realizar_prestacao_contas.wait_for_load_state('networkidle', timeout=10000) 
+                                processo_spp = realizar_prestacao_contas.locator("#txtProcessoSPP_SIGEFPesquisa")
+                                processo_spp.press_sequentially('0')
+                                 
+                                operacao = realizar_prestacao_contas.locator("#cboOperacao")
+                                operacao.select_option(label="Entregue")
+                                realizar_prestacao_contas.wait_for_load_state('networkidle', timeout=10000) 
+                                observacao.press_sequentially("Estorno, registro de prestação de contas de diárias de Em Análise para Entregue.")
+                                botao_confirmar = realizar_prestacao_contas.get_by_role("button", name="Confirmar a Operação")
+                                botao_confirmar.wait_for()
+                                botao_confirmar.click()
+                                realizar_prestacao_contas.wait_for_load_state('networkidle', timeout=10000)
+                                botao_consultar = realizar_prestacao_contas.get_by_role("button", name="Consultar o Registro")
+                                botao_consultar.wait_for()
+                                botao_consultar.click()
+                                realizar_prestacao_contas.wait_for_load_state('networkidle', timeout=10000)
+                                if robo_deve_parar:
+                                    verificar_panico_e_sair(book)
+
+                        situacao = realizar_prestacao_contas.locator('#txtSituacaoPrestacaoContas')
+                        situacao = situacao.input_value()
+                            
+                        if situacao == "Entregue":
+                                if robo_deve_parar:
+                                    verificar_panico_e_sair(book)
+
+                                print('Estorno: Prestacao de contas ' + prestacao_contas + ' do credor ' + credor + '.')
+                                realizar_prestacao_contas.wait_for_load_state('networkidle', timeout=10000) 
+                                data = realizar_prestacao_contas.locator("#txtDataPrestacaoContas_SIGEFData")
+                                data.press_sequentially(data_da_operacao)
+                                realizar_prestacao_contas.wait_for_load_state('networkidle', timeout=10000) 
+                                processo_spp = realizar_prestacao_contas.locator("#txtProcessoSPP_SIGEFPesquisa")
+                                processo_spp.press_sequentially('0')
+                                operacao = realizar_prestacao_contas.locator("#cboOperacao")
+                                operacao.select_option(label="Paga")
+                                realizar_prestacao_contas.wait_for_load_state('networkidle', timeout=10000) 
+                                observacao.press_sequentially("Estorno, registro de prestação de contas de diárias de Entregue para Paga.")
+                                botao_confirmar = realizar_prestacao_contas.get_by_role("button", name="Confirmar a Operação")
+                                botao_confirmar.wait_for()
+                                botao_confirmar.click()
+                                realizar_prestacao_contas.wait_for_load_state('networkidle', timeout=10000)
+                                botao_consultar = realizar_prestacao_contas.get_by_role("button", name="Consultar o Registro")
+                                botao_consultar.wait_for()
+                                botao_consultar.click()
+                                realizar_prestacao_contas.wait_for_load_state('networkidle', timeout=10000)
+                                if robo_deve_parar:
+                                    verificar_panico_e_sair(book)
+                                
+
+                    
                     if situacao == 'Entregue':
                         if robo_deve_parar:
                             numero_nl2 = "Não foi feita!"
@@ -340,19 +450,20 @@ with sync_playwright() as p:
                                 book.save('Planilha de Baixas.xlsx')
                             verificar_panico_e_sair(book)
 
-                        print('2 PASSO: Prestacao de contas ' + prestacao_contas + ' do credor ' + credor + '.')
+                        print('2º PASSO: Prestacao de contas ' + prestacao_contas + ' do credor ' + credor + '.')
+                        realizar_prestacao_contas.wait_for_load_state('networkidle', timeout=10000) 
                         operacao = realizar_prestacao_contas.locator("#cboOperacao")
                         operacao.select_option(label="Em Análise")
-                        time.sleep(0.3)
+                        realizar_prestacao_contas.wait_for_load_state('networkidle', timeout=10000) 
                         observacao.press_sequentially("2º Passo: Em Análise. Prestação de Contas de " + instrumento + ", Natureza da Despesa: " + natureza + ", em nome do Credor " + credor + ", Despesa Certificada: " + despesa_certificada + ", Nota Liquidação: " + nota_liquidacao + ", Preparação de Pagamento: " + preparacao_pagamento + ", Nota de Empenho: " + nota_empenho + ".")
                         botao_confirmar = realizar_prestacao_contas.get_by_role("button", name="Confirmar a Operação")
                         botao_confirmar.wait_for()
                         botao_confirmar.click()
-                        realizar_prestacao_contas.wait_for_load_state('networkidle', timeout=30000)
+                        realizar_prestacao_contas.wait_for_load_state('networkidle', timeout=10000)
                         botao_consultar = realizar_prestacao_contas.get_by_role("button", name="Consultar o Registro")
                         botao_consultar.wait_for()
                         botao_consultar.click()
-                        realizar_prestacao_contas.wait_for_load_state('networkidle', timeout=30000)
+                        realizar_prestacao_contas.wait_for_load_state('networkidle', timeout=10000)
                         if robo_deve_parar:
                             numero_nl2 = "Não foi feita!"
                             if book:
@@ -369,13 +480,15 @@ with sync_playwright() as p:
                                 book.save('Planilha de Baixas.xlsx')
                             verificar_panico_e_sair(book)
 
-                        print('3 PASSO: Prestacao de contas ' + prestacao_contas + ' do credor ' + credor + '.')
+                        print('3º PASSO: Prestacao de contas ' + prestacao_contas + ' do credor ' + credor + '.')
+                        realizar_prestacao_contas.wait_for_load_state('networkidle', timeout=10000) 
                         operacao = realizar_prestacao_contas.locator("#cboOperacao")
                         operacao.select_option(label="Baixa Regular")
-                        time.sleep(0.3)
+                        realizar_prestacao_contas.wait_for_load_state('networkidle', timeout=10000) 
                         observacao.press_sequentially("3º Passo: Baixa Regular. Prestação de Contas de " + instrumento + ", Natureza da Despesa: " + natureza + ", em nome do Credor " + credor + ", Despesa Certificada: " + despesa_certificada + ", Nota Liquidação: " + nota_liquidacao + ", Preparação de Pagamento: " + preparacao_pagamento + ", Nota de Empenho: " + nota_empenho + ".")
                         botao_confirmar = realizar_prestacao_contas.get_by_role("button", name="Confirmar a Operação")
                         botao_confirmar.wait_for()
+                        realizar_prestacao_contas.wait_for_load_state('networkidle', timeout=10000) 
                         if robo_deve_parar:
                             numero_nl2 = "Não foi feita!"
                             if book:
@@ -386,29 +499,32 @@ with sync_playwright() as p:
                         botao_confirmar.click()
 
                         try:
-                            time.sleep(0.3)
+                            realizar_prestacao_contas.wait_for_load_state('networkidle', timeout=10000)
                             caixa_mensagem_sucesso2 = realizar_prestacao_contas.locator(".SIGEFMensagemSucesso")
                             caixa_mensagem_sucesso2.wait_for(timeout=10000)
                             texto_completo2 = caixa_mensagem_sucesso2.inner_text()
                             if "O número gerado foi" in texto_completo2:
+                                realizar_prestacao_contas.wait_for_load_state('networkidle', timeout=10000) 
                                 numero_nl2 = texto_completo2.split("foi ")[1]
                                 numero_nl2 = numero_nl2.strip('.')
-                            botao_consultar = realizar_prestacao_contas.get_by_role("button", name="Consultar o Registro")
-                            botao_consultar.wait_for()
-                            botao_consultar.click()
-                            realizar_prestacao_contas.wait_for_load_state('networkidle', timeout=30000)
+                                botao_consultar = realizar_prestacao_contas.get_by_role("button", name="Consultar o Registro")
+                                botao_consultar.wait_for()
+                                botao_consultar.click()
+                                realizar_prestacao_contas.wait_for_load_state('networkidle', timeout=10000)
                         except:
                             try:
+                                realizar_prestacao_contas.wait_for_load_state('networkidle', timeout=10000) 
                                 caixa_mensagem_sucesso2 = realizar_prestacao_contas.locator(".SIGEFMensagemSucesso")
                                 caixa_mensagem_sucesso2.wait_for(timeout=10000)
                                 texto_completo2 = caixa_mensagem_sucesso2.inner_text()
                                 if "O número gerado foi" in texto_completo2:
+                                    realizar_prestacao_contas.wait_for_load_state('networkidle', timeout=10000) 
                                     numero_nl2 = texto_completo2.split("foi ")[1]
                                     numero_nl2 = numero_nl2.strip('.')
-                                botao_consultar = realizar_prestacao_contas.get_by_role("button", name="Consultar o Registro")
-                                botao_consultar.wait_for()
-                                botao_consultar.click()
-                                realizar_prestacao_contas.wait_for_load_state('networkidle', timeout=30000)
+                                    botao_consultar = realizar_prestacao_contas.get_by_role("button", name="Consultar o Registro")
+                                    botao_consultar.wait_for()
+                                    botao_consultar.click()
+                                    realizar_prestacao_contas.wait_for_load_state('networkidle', timeout=10000)
                             except:
                                 botao_consultar = realizar_prestacao_contas.get_by_role("button", name="Consultar o Registro")
                                 botao_consultar.wait_for()
@@ -417,10 +533,10 @@ with sync_playwright() as p:
                         if texto_completo1==texto_completo2:
                             numero_nl2 = 'Erro.'
                         
-                        botao_consultar = realizar_prestacao_contas.get_by_role("button", name="Consultar o Registro")
-                        botao_consultar.wait_for()
-                        botao_consultar.click()
-                        realizar_prestacao_contas.wait_for_load_state('networkidle', timeout=30000)
+                        #botao_consultar = realizar_prestacao_contas.get_by_role("button", name="Consultar o Registro")
+                        #botao_consultar.wait_for()
+                        #botao_consultar.click()
+                        realizar_prestacao_contas.wait_for_load_state('networkidle', timeout=10000)
                         situacao = realizar_prestacao_contas.locator('#txtSituacaoPrestacaoContas')
                         situacao = situacao.input_value()
                         if robo_deve_parar:
@@ -441,6 +557,9 @@ with sync_playwright() as p:
                         realizar_prestacao_contas.wait_for_load_state('networkidle', timeout=30000)
                         if robo_deve_parar:
                             verificar_panico_e_sair(book)
+
+                        numero_nl = "Faltou!"
+                        numero_nl2 = "Faltou"
                       
     except TimeoutError:
         print("\nERRO: Timeout! Não foi possível encontrar um elemento a tempo.")
