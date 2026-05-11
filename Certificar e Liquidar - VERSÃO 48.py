@@ -158,8 +158,9 @@ else:
                 if "SIGEF" in p.title():
                     guia = p
                     break
-                if guia is None:
-                    print("[ERRO]: Não encontrei nenhuma aba aberta com o SIGEF logado!")
+            
+            if guia is None:
+                print("[ERRO]: Não encontrei nenhuma aba aberta com o SIGEF logado!")
 
             #VERIFICAR A PÁGINA ABERTA:
             print(f"\nAssumindo o controle da página com o título: '{guia.title()}'")
@@ -462,10 +463,14 @@ else:
                                                 print("[VALIDAÇÃO] Esperado " + primeiro_nome + ", encontrado " + primeiro_nome_na_tela + ".")
                                                 codigo.click()
                                                 print("[SUCESSO] Credor selecionado com sucesso.")
+
+                                                validacao_bem_sucedida = True
                                                 
                                             else:
                                                 print("[ERRO DE VALIDAÇÃO] O nome não corresponde ao esperado!")
+                                                validacao_bem_sucedida = False
                                                 raise Exception('[ERRO DE VALIDAÇÃO] Esperado ' + primeiro_nome + " , encontrado " + primeiro_nome_na_tela + ".")
+                                                
                                     except Exception as e:
                                             print(f"Ocorreu um erro durante a validação do credor: {e}")
                                 
@@ -477,96 +482,109 @@ else:
                                     if not numeros_pc:
                                         raise Exception("[ATENÇÃO] Nenhum número de CPF válido foi encontrado na lista de células.")
                         
-                        manter_despesa_certificada.wait_for_load_state('networkidle', timeout=10000)
-                        valor_documento.fill(valor)
-                        observacao.fill(texto_da_ce)
-                        botao_incluir = manter_despesa_certificada.get_by_role("button", name="Incluir o Registro")
-                        if robo_deve_parar:
-                            manter_despesa_certificada.close()
-                            verificar_panico_e_sair(book)
-                                
-                            pyautogui.alert(text='Tecla ESC acionada. Automacao encerrada', title='Tecla de Panico Acionada', button='OK')
-                            sys.exit()
-                        
-                        cpf_final = manter_despesa_certificada.locator("#txtCdCredor").input_value()
-                        credor_final = manter_despesa_certificada.locator("#txtNmCredor_SIGEFPesquisa").input_value()
-                        credor_final = credor_final.upper()
-                        valor_final = manter_despesa_certificada.locator("#txtVlDocumento").input_value()
-                        botao_incluir.click()
-                        manter_despesa_certificada.wait_for_load_state('networkidle', timeout=10000)
-                        
-                        try: 
-                            erro_na_tela = manter_despesa_certificada.get_by_role("cell", name="Número Documento já cadastrado(a).", exact=True)
-                            if erro_na_tela.is_visible():
-                                documento_ja_cadastrado = True
-                            else:
-                                documento_ja_cadastrado = False
-                            if documento_ja_cadastrado:
-                                print("[AVISO] O documento já foi cadastrado anteriormente.")
-                                print("O robô vai pular este item ou tomar uma ação alternativa.")
-                            else:
-                                print("[SUCESSO] Nenhuma mensagem de erro encontrada.")
-                                documento_ja_cadastrado = False
-                        except Exception as e:
-                            documento_ja_cadastrado = False
-                            print(f"Ocorreu um erro durante a verificação do documento: {e}")
-                        
-                        if documento_ja_cadastrado == True:
-                            try:
-                                despesa_certificada = "pesquisar no sigef"
-                                pagina2_backup.append([ug,gestao,processo_formatado,credor_final,cpf_final,valor_final,banco,agencia,conta,nota_de_empenho,despesa_certificada,ainda_nao_foi_feito,ainda_nao_foi_feito,ainda_nao_foi_feito,data,operacao,data_formatada,agora,value_numero_cortado])
-                                book_backup.save("Backup.xlsx") 
-                                
-                                dados = [ug,gestao,processo_formatado,credor_final,cpf_final,valor_final,banco,agencia,conta,nota_de_empenho,despesa_certificada,ainda_nao_foi_feito,ainda_nao_foi_feito,ainda_nao_foi_feito,data,operacao,data_formatada,agora,value_numero_cortado]
-
-                                for numero_coluna, valor in enumerate(dados, start=1):
-                                    pagina2.cell(row=linha, column=numero_coluna, value=valor)
-
-                                book.save(planilha)
-                                
-                            except:
-                                book_backup.save("Backup.xlsx") 
-                                print("Deu algum erro ao salvar a planilha, a planilha de backup foi solicitada.")
-                                book_backup.close()
+                        if validacao_bem_sucedida == True:
+                            manter_despesa_certificada.wait_for_load_state('networkidle', timeout=10000)
+                            valor_documento.fill(valor)
+                            observacao.fill(texto_da_ce)
+                            botao_incluir = manter_despesa_certificada.get_by_role("button", name="Incluir o Registro")
+                            if robo_deve_parar:
+                                manter_despesa_certificada.close()
+                                verificar_panico_e_sair(book)
+                                    
+                                pyautogui.alert(text='Tecla ESC acionada. Automacao encerrada', title='Tecla de Panico Acionada', button='OK')
                                 sys.exit()
-                        else:
-                            numero_despesa_certificada = manter_despesa_certificada.locator("#txtNuSeq")
-                            numero_despesa_certificada.wait_for(timeout=10000)
-                            numero_despesa_certificada.dblclick()
-                            numero_despesa_certificada.press('Control+KeyC')
-                            despesa_certificada =  numero_despesa_certificada = pyperclip.paste()
-                            despesa_certificada = "2026CE" + str(despesa_certificada)
-                            print(f"[SUCESSO] Despesa Certificada encontrada e copiada: '{despesa_certificada}'")
+                            
+                            cpf_final = manter_despesa_certificada.locator("#txtCdCredor").input_value()
+                            credor_final = manter_despesa_certificada.locator("#txtNmCredor_SIGEFPesquisa").input_value()
+                            credor_final = credor_final.upper()
+                            valor_final = manter_despesa_certificada.locator("#txtVlDocumento").input_value()
+                            botao_incluir.click()
+                            manter_despesa_certificada.wait_for_load_state('networkidle', timeout=10000)
+                            
+                            try: 
+                                erro_na_tela = manter_despesa_certificada.get_by_role("cell", name="Número Documento já cadastrado(a).", exact=True)
+                                if erro_na_tela.is_visible():
+                                    documento_ja_cadastrado = True
+                                else:
+                                    documento_ja_cadastrado = False
+                                if documento_ja_cadastrado:
+                                    print("[AVISO] O documento já foi cadastrado anteriormente.")
+                                    print("O robô vai pular este item ou tomar uma ação alternativa.")
+                                else:
+                                    print("[SUCESSO] Nenhuma mensagem de erro encontrada.")
+                                    documento_ja_cadastrado = False
+                            except Exception as e:
+                                documento_ja_cadastrado = False
+                                print(f"Ocorreu um erro durante a verificação do documento: {e}")
+                            
+                            if documento_ja_cadastrado == True:
+                                try:
+                                    despesa_certificada = "pesquisar no sigef"
+                                    pagina2_backup.append([ug,gestao,processo_formatado,credor_final,cpf_final,valor_final,banco,agencia,conta,nota_de_empenho,despesa_certificada,ainda_nao_foi_feito,ainda_nao_foi_feito,ainda_nao_foi_feito,data,operacao,data_formatada,agora,value_numero_cortado])
+                                    book_backup.save("Backup.xlsx") 
+                                    
+                                    dados = [ug,gestao,processo_formatado,credor_final,cpf_final,valor_final,banco,agencia,conta,nota_de_empenho,despesa_certificada,ainda_nao_foi_feito,ainda_nao_foi_feito,ainda_nao_foi_feito,data,operacao,data_formatada,agora,value_numero_cortado]
 
-                            if despesa_certificada_teste == despesa_certificada:
-                                print("[REPETIDO] Refazendo Despesa Certificada!")
-                                despesa_certificada = 'None'
-                            else:
-                                if despesa_certificada_teste == despesa_certificada:
-                                    print("[ERRO] Refazendo Despesa Certificada!")
+                                    for numero_coluna, valor in enumerate(dados, start=1):
+                                        pagina2.cell(row=linha, column=numero_coluna, value=valor)
+
                                     book.save(planilha)
+                                    
+                                except:
+                                    book_backup.save("Backup.xlsx") 
+                                    print("Deu algum erro ao salvar a planilha, a planilha de backup foi solicitada.")
+                                    book_backup.close()
+                                    sys.exit()
+                            else:
+                                numero_despesa_certificada = manter_despesa_certificada.locator("#txtNuSeq")
+                                numero_despesa_certificada.wait_for(timeout=10000)
+                                numero_despesa_certificada.dblclick()
+                                numero_despesa_certificada.press('Control+KeyC')
+                                despesa_certificada =  numero_despesa_certificada = pyperclip.paste()
+                                despesa_certificada = "2026CE" + str(despesa_certificada)
+                                print(f"[SUCESSO] Despesa Certificada encontrada e copiada: '{despesa_certificada}'")
+
+                                if despesa_certificada_teste == despesa_certificada:
+                                    print("[REPETIDO] Refazendo Despesa Certificada!")
                                     despesa_certificada = 'None'
                                 else:
-                                    if despesa_certificada == "pesquisar no sigef":
-                                        time.sleep(0)
+                                    if despesa_certificada_teste == despesa_certificada:
+                                        print("[ERRO] Refazendo Despesa Certificada!")
+                                        book.save(planilha)
+                                        despesa_certificada = 'None'
                                     else:
-                                        try:
-                                            pagina2_backup.append([ug,gestao,processo_formatado,credor_final,cpf_final,valor_final,banco, agencia,conta,nota_de_empenho,despesa_certificada,ainda_nao_foi_feito,ainda_nao_foi_feito,ainda_nao_foi_feito,data,operacao,data_formatada,agora,value_numero_cortado])
-                                            book_backup.save("Backup.xlsx")
-                    
-                                            dados = [ug,gestao,processo_formatado,credor_final,cpf_final,valor_final,banco,agencia,conta,nota_de_empenho,despesa_certificada,ainda_nao_foi_feito,ainda_nao_foi_feito,ainda_nao_foi_feito,data,operacao,data_formatada,agora,value_numero_cortado]
-
-                                            for numero_coluna, valor in enumerate(dados, start=1):
-                                                pagina2.cell(row=linha, column=numero_coluna, value=valor)
-
-                                            book.save(planilha)
-                                            
-                                        except:
-                                            book_backup.save("Backup.xlsx")
-                                            print("Deu algum erro ao salvar a planilha, a planilha de backup foi solicitada.")
-                                            book_backup.close()
-                                            sys.exit()
+                                        if despesa_certificada == "pesquisar no sigef":
+                                            time.sleep(0)
+                                        else:
+                                            try:
+                                                pagina2_backup.append([ug,gestao,processo_formatado,credor_final,cpf_final,valor_final,banco, agencia,conta,nota_de_empenho,despesa_certificada,ainda_nao_foi_feito,ainda_nao_foi_feito,ainda_nao_foi_feito,data,operacao,data_formatada,agora,value_numero_cortado])
+                                                book_backup.save("Backup.xlsx")
                         
+                                                dados = [ug,gestao,processo_formatado,credor_final,cpf_final,valor_final,banco,agencia,conta,nota_de_empenho,despesa_certificada,ainda_nao_foi_feito,ainda_nao_foi_feito,ainda_nao_foi_feito,data,operacao,data_formatada,agora,value_numero_cortado]
+
+                                                for numero_coluna, valor in enumerate(dados, start=1):
+                                                    pagina2.cell(row=linha, column=numero_coluna, value=valor)
+
+                                                book.save(planilha)
+                                                
+                                            except:
+                                                book_backup.save("Backup.xlsx")
+                                                print("Deu algum erro ao salvar a planilha, a planilha de backup foi solicitada.")
+                                                book_backup.close()
+                                                sys.exit()
+                        else:
+                            botao_limpar = manter_despesa_certificada.get_by_role("link", name="Limpar a Tela")
+                            botao_limpar.click()
+                            cpf = "CPF não condiz com o servidor"
+                            despesa_certificada = "Não foi feita."
+                            ug = gestao = processo = valor = banco = agencia = conta = empenho = liquidacao = operacao = data = data_do_pagamento = agora = data_formatada = value_numero_cortado = '-'
+                            dados = [ug,gestao,processo,nome,cpf,valor,banco,agencia,conta,empenho,despesa_certificada,ainda_nao_foi_feito,ainda_nao_foi_feito,ainda_nao_foi_feito,data,operacao,data_formatada, agora,value_numero_cortado]
+
+                            for numero_coluna, valor in enumerate(dados, start=1):
+                                pagina2.cell(row=linha, column=numero_coluna, value=valor)
+
+                            book.save(planilha)
+
                         botao_limpar = manter_despesa_certificada.get_by_role("link", name="Limpar a Tela")
                         botao_limpar.click()
 
