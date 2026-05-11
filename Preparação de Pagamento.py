@@ -20,7 +20,7 @@ from datetime import date
 from datetime import datetime
 
 #QUAL PLANILHA VAI SER UTILIZADA?
-planilha = "Pagamentos - voluntariar março 2026.xlsx"
+planilha = "Pagamentos - voluntariar abril 2026.xlsx"
 
 #VARIÁVEIS IMPORTANTES
 robo_deve_parar = False
@@ -156,11 +156,11 @@ with sync_playwright() as p:
         funcionalidade_sistema = frame.get_by_title("PP Despesa Empenhada")
         
         with guia.expect_popup() as popup_info:
-                        funcionalidade_sistema.click()
-                        pp_despesa_empenhada = popup_info.value
-                        pp_despesa_empenhada.wait_for_load_state('networkidle', timeout=30000)
+            funcionalidade_sistema.click()
+            pp_despesa_empenhada = popup_info.value
+            pp_despesa_empenhada.wait_for_load_state('networkidle', timeout=30000)
 
-        while numero_de_operacoes != linha_documento:
+        while linha_documento != numero_de_operacoes:
 
             #OBTENDO A UNIDADE GESTORA:
             ug = str(pagina3.cell(row=linha, column=1).value)
@@ -181,7 +181,7 @@ with sync_playwright() as p:
             valor = str(pagina3.cell(row=linha, column=6).value)
             
             #LENDO O BANCO
-            banco = str(pagina3.cell(row=linha, column=7).value).upper()  
+            banco = str(pagina1.cell(row=linha, column=7).value).upper()  
             banco_backup = banco
                     
             bancos = {
@@ -198,10 +198,10 @@ with sync_playwright() as p:
             selecionar_banco_dicionario = bancos.get(banco, '001')
 
             #LENDO A AGENCIA
-            agencia = str(pagina3.cell(row=linha, column=8).value)
+            agencia = str(pagina1.cell(row=linha, column=8).value)
 
             #LENDO A CONTA CORRENTE
-            conta = str(pagina3.cell(row=linha, column=9).value)
+            conta = str(pagina1.cell(row=linha, column=9).value)
 
             #LENDO A NOTA DE EMPENHO
             empenho = str(pagina3.cell(row=linha, column=10).value)
@@ -218,6 +218,7 @@ with sync_playwright() as p:
             
             #LENDO A PREPARAÇÃO DE PAGAMENTO
             preparacao_pagamento = str(pagina4.cell(row=linha, column=13).value)
+        
             if preparacao_pagamento != "None":
                 ja_foi_preparado = True
             else:
@@ -335,19 +336,19 @@ with sync_playwright() as p:
                     pp_despesa_empenhada.wait_for_load_state('networkidle', timeout=30000)
                     cessionario = pp_despesa_empenhada.locator("#txtCredor_SIGEFPesquisa")
                     cessionario.wait_for(timeout=5000)
-                    cessionario = pp_despesa_empenhada.locator("#txtCredor_SIGEFPesquisa").input_value()
-                    value_cessionario = cessionario
+                    value_cessionario = pp_despesa_empenhada.locator("#txtCredor_SIGEFPesquisa").input_value()
 
                     while value_cessionario != cpf:
+                        pp_despesa_empenhada.wait_for_load_state('networkidle', timeout=30000)
                         cessionario = pp_despesa_empenhada.locator("#txtCredor_SIGEFPesquisa")
-                        value_cessionario = cessionario.input_value()
-                        value_cessionario = value_cessionario
-                        
+                        cessionario.wait_for(timeout=5000)
+                        value_cessionario = pp_despesa_empenhada.locator("#txtCredor_SIGEFPesquisa").input_value()
+                        print("[ATENÇÃO] Validando dados...")
                         if robo_deve_parar:
-                            verificar_panico_e_sair(book)
                             pp_despesa_empenhada.close()
+                            verificar_panico_e_sair(book)       
                     else:
-                        print('[VALIDAÇÃO] Liquidação encontrada.')
+                        print(f"[VALIDAÇÃO] Liquidação: '{liquidacao}'")
                     
                     tipo_ordem_bancaria = pp_despesa_empenhada.locator("#cboTipoOrdemBancaria")
                     tipo_ordem_bancaria.wait_for(timeout=5000)
@@ -448,6 +449,7 @@ with sync_playwright() as p:
                     botao_retencoes.click()
                     sugerindo_retencoes = False
                     nao_existem_retencoes = pp_despesa_empenhada.get_by_text("Não existem sugestões para")
+                    
                     while sugerindo_retencoes == False:
                         if nao_existem_retencoes.is_visible():
                             sugerindo_retencoes=True
@@ -527,23 +529,18 @@ with sync_playwright() as p:
                             
                             try:
                                 print("Inserindo dados na planilha...")
+
                                 pagina4_backup.append([ug,gestao,processo,nome,cpf,valor,value_confirmacao_banco, value_confirmacao_agencia, value_confirmacao_conta,empenho,despesa_certificada,liquidacao,pp,ainda_nao_foi_feito,data,operacao,data_do_pagamento,agora,value_numero_cortado])
-                                pagina4.delete_rows(linha,1)
-                                pagina4.append([ug,gestao,processo,nome,cpf,valor,value_confirmacao_banco, value_confirmacao_agencia, value_confirmacao_conta,empenho,despesa_certificada,liquidacao,pp,ainda_nao_foi_feito,data,operacao,data_do_pagamento,agora,value_numero_cortado])
-                                
-                                verificacao = str(pagina2.cell(row=linha,column=3).value)
-                                numero_de_linhas_apagadas = 0
-                                while verificacao != processo:
-                                            numero_de_linhas_apagadas = numero_de_linhas_apagadas + 1
-                                            print("Aguarde um momento, apagando " + str(numero_de_linhas_apagadas) + " linhas em branco...")
-                                            verificacao = str(pagina4.cell(row=linha,column=3).value)
-                                            pagina4.delete_rows(linha,1)
-                                            verificacao = str(pagina4.cell(row=linha,column=3).value)
-                                else:
-                                            book.save(planilha) 
-                                            print("Planilha salva com sucesso.")
-                                
                                 book_backup.save("Backup.xlsx")
+
+                                                                
+                                dados = [ug,gestao,processo,nome,cpf,valor,value_confirmacao_banco, value_confirmacao_agencia, value_confirmacao_conta,empenho,despesa_certificada,liquidacao,pp,ainda_nao_foi_feito,data,operacao,data_do_pagamento,agora,value_numero_cortado]
+
+                                for numero_coluna, valor in enumerate(dados, start=1):
+                                    pagina4.cell(row=linha, column=numero_coluna, value=valor)
+
+                                book.save(planilha)
+                                print("[SUCESSO] Planilha salva.")
                                 
                             except:
                                 book_backup.save("Backup.xlsx")
@@ -575,20 +572,6 @@ with sync_playwright() as p:
                                 pp_despesa_empenhada.wait_for_load_state('networkidle', timeout=30000)
                                 try:
                                     pagina4_backup.append([ug,gestao,processo,nome,cpf,valor,value_confirmacao_banco, value_confirmacao_agencia, value_confirmacao_conta,empenho,despesa_certificada,liquidacao,pp,ainda_nao_foi_feito,data,operacao,data_do_pagamento,agora,value_numero_cortado])
-                                    pagina4.delete_rows(linha,1)
-                                    pagina4.append([ug,gestao,processo,nome,cpf,valor,value_confirmacao_banco, value_confirmacao_agencia, value_confirmacao_conta,empenho,despesa_certificada,liquidacao,pp,ainda_nao_foi_feito,data,operacao,data_do_pagamento,agora,value_numero_cortado])
-                                    
-                                    verificacao = str(pagina2.cell(row=linha,column=3).value)
-                                    numero_de_linhas_apagadas = 0
-                                    while verificacao != processo:
-                                        numero_de_linhas_apagadas = numero_de_linhas_apagadas + 1
-                                        print("Aguarde um momento, apagando " + str(numero_de_linhas_apagadas) + " linhas em branco...")
-                                        verificacao = str(pagina4.cell(row=linha,column=3).value)
-                                        pagina4.delete_rows(linha,1)
-                                        verificacao = str(pagina4.cell(row=linha,column=3).value)
-                                    else:
-                                        book.save(planilha) 
-                                        print("Planilha salva com sucesso.")
                                     
                                     book_backup.save("Backup.xlsx")
                                     
@@ -614,22 +597,15 @@ with sync_playwright() as p:
                                         agencia = "-"
                                         conta = "-"
                                         pagina4_backup.append([ug,gestao,processo,nome,cpf,valor,value_confirmacao_banco, value_confirmacao_agencia, value_confirmacao_conta,empenho,despesa_certificada,liquidacao,pp,ainda_nao_foi_feito,data,operacao,data_do_pagamento,agora,value_numero_cortado])
-                                        pagina4.delete_rows(linha,1)
-                                        pagina4.append([ug,gestao,processo,nome,cpf,valor,value_confirmacao_banco, value_confirmacao_agencia, value_confirmacao_conta,empenho,despesa_certificada,liquidacao,pp,ainda_nao_foi_feito,data,operacao,data_do_pagamento,agora,value_numero_cortado])
-                                        verificacao = str(pagina4.cell(row=linha,column=3).value)
                                         book_backup.save("Backup.xlsx")
-                                        
-                                        verificacao = str(pagina2.cell(row=linha,column=3).value)
-                                        numero_de_linhas_apagadas = 0
-                                        while verificacao != processo:
-                                            numero_de_linhas_apagadas = numero_de_linhas_apagadas + 1
-                                            print("Aguarde um momento, apagando " + str(numero_de_linhas_apagadas) + " linhas em branco...")
-                                            verificacao = str(pagina4.cell(row=linha,column=3).value)
-                                            pagina4.delete_rows(linha,1)
-                                            verificacao = str(pagina4.cell(row=linha,column=3).value)
-                                        else:
-                                            book.save(planilha) 
-                                            print("Planilha salva com sucesso.")
+
+                                                                
+                                        dados = [ug,gestao,processo,nome,cpf,valor,value_confirmacao_banco, value_confirmacao_agencia, value_confirmacao_conta,empenho,despesa_certificada,liquidacao,pp,ainda_nao_foi_feito,data,operacao,data_do_pagamento,agora,value_numero_cortado]
+
+                                        for numero_coluna, valor in enumerate(dados, start=1):
+                                            pagina4.cell(row=linha, column=numero_coluna, value=valor)
+
+                                        book.save(planilha)
                                     except:
                                         
                                         book_backup.save("Backup.xlsx")
@@ -646,14 +622,15 @@ with sync_playwright() as p:
                                         sys.exit()
                 else:
                     linha = linha + 1
+                    linha_documento = linha - 1
                     pp = 'não foi feita'
 
                     if robo_deve_parar:
-                        verificar_panico_e_sair(book)
                         pp_despesa_empenhada.close()
-                             
-pp_despesa_empenhada.close()
-print("\nFim das preparações de Pagamento.")
+                        verificar_panico_e_sair(book)
+        else:
+            print("\nFim das preparações de Pagamento.")
+
 if book:
     book.close()
 print("\nScript finalizado. A janela de depuração permanece aberta.") 
