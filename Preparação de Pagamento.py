@@ -303,6 +303,7 @@ with sync_playwright() as p:
                                     time.sleep(0.1)
                                     obedece_ou_nao_ordem_cronologica = popup_info.value
                                     obedece_ou_nao_ordem_cronologica.wait_for_load_state('networkidle', timeout=30000)
+                                    time.sleep(0.3)
                                     obedece = obedece_ou_nao_ordem_cronologica.get_by_text("Obedece Ordem Cronológica", exact=True)
                                     nao_obedece = obedece_ou_nao_ordem_cronologica.get_by_text("Não Obedece Ordem Cronológica")
                                     nao_obedece.wait_for(timeout=5000)
