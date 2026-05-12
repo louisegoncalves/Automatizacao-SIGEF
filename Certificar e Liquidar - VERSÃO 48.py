@@ -28,6 +28,8 @@ from datetime import datetime
 import sys
 # =================================================================
 
+os.system('cls' if os.name == 'nt' else 'clear')
+
 # =================================================================
 #QUAL PLANILHA VAI SER UTILIZADA?
 planilha = "Pagamentos - voluntariar abril 2026.xlsx"
@@ -184,7 +186,7 @@ else:
 
             os.system('cls' if os.name == 'nt' else 'clear')
             #INÍCIO                
-            print("\nIniciando!")
+            print("\n[INÍCIO DAS CERTIFICAÇÕES] Iniciando as certificações.")
             print("\nPlanilha lida. São " + str(numero_de_operacoes) + " operações para executar.")
 
 
@@ -611,14 +613,14 @@ else:
                     ug = gestao = processo = nome = cpf = valor = banco = agencia = conta = empenho = despesa_certificada = liquidacao = operacao = data = data_do_pagamento = agora = value_numero_cortado = 'None'
                     documento_ja_cadastrado = False
     
-            print("\nNenhuma despesa para certificar. Iniciando a liquidação...\n")
+            print("\n[FIM DAS CERTIFICAÇÕES] Nenhuma despesa para certificar.")
             ja_foi_certificado = True
             manter_despesa_certificada.close()
 
 ##################################################################################################################################
 #              A PARTIR DAQUI COMEÇA A LIQUIDAR
 ##################################################################################################################################
-
+            print("\n=====================================================")
             linha = 2
             linha_documento = linha
         
@@ -639,6 +641,7 @@ else:
             pesquisar_funcionalidades_sistema.press_sequentially("Liquidar Despesa Certificada")
             funcionalidade_sistema = frame.get_by_title("Liquidar Despesa Certificada")
 
+            print("\n[INÍCIO DAS LIQUIDAÇÕES] Iniciando as liquidações.")
                             
             #INÍCIO DO LOOP
             while numero_de_operacoes != linha_documento:
@@ -736,8 +739,9 @@ else:
                                 print("\nEstou na linha " + str(linha) + " da planilha, referente ao servidor " + str(nome) + ", despesa certificada " + str(despesa_certificada) + ".")
 
                                 if robo_deve_parar:
-                                    verificar_panico_e_sair(book)
                                     liquidar_despesa_certificada.close()
+                                    verificar_panico_e_sair(book)
+                                    
         
                                 liquidar_despesa_certificada.wait_for_load_state('networkidle', timeout=10000)
                                 campo_unidade_gestora = liquidar_despesa_certificada.locator("#txtCdUnidadeGestora")
@@ -932,7 +936,7 @@ else:
                                 ug = gestao = processo = nome = cpf = valor = banco = agencia = conta = empenho = despesa_certificada = liquidacao = operacao = data = data_do_pagamento = agora = value_numero_cortado = 'None'
 
 liquidar_despesa_certificada.close()
-print("\nFim das liquidações.")
+print("\n[FIM DAS LIQUIDAÇÕES] Nenhuma despesa para liquidar.")
 if book:
     book.close()
 print("\nScript finalizado. A janela de depuração permanece aberta.")
