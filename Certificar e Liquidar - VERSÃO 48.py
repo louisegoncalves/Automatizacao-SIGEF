@@ -503,6 +503,7 @@ else:
                             if robo_deve_parar:
                                 manter_despesa_certificada.close()
                                 verificar_panico_e_sair(book)
+                                manter_despesa_certificada.close()
                                     
                                 pyautogui.alert(text='Tecla ESC acionada. Automacao encerrada', title='Tecla de Panico Acionada', button='OK')
                                 sys.exit()
@@ -736,6 +737,7 @@ else:
 
                                 if robo_deve_parar:
                                     verificar_panico_e_sair(book)
+                                    liquidar_despesa_certificada.close()
         
                                 liquidar_despesa_certificada.wait_for_load_state('networkidle', timeout=10000)
                                 campo_unidade_gestora = liquidar_despesa_certificada.locator("#txtCdUnidadeGestora")
@@ -748,7 +750,7 @@ else:
                                 agora = datetime.now()
                                 
                                 if robo_deve_parar:
-                                  
+                                    liquidar_despesa_certificada.close()
                                     if book:
                                         verificar_panico_e_sair(book)
 
@@ -760,7 +762,7 @@ else:
                                 botao_pesquisar.click()
                                     
                                 if robo_deve_parar:
-                              
+                                    liquidar_despesa_certificada.close()
                                     if book:
                                         verificar_panico_e_sair(book)
                                     
@@ -775,14 +777,14 @@ else:
                                 ponto_interrogacao = liquidar_despesa_certificada.locator("#txtNotaEmpenhoNumeroId_lnkBtnPesquisa")
 
                                 if robo_deve_parar:
-  
+                                    liquidar_despesa_certificada.close()
                                     if book:
                                         verificar_panico_e_sair(book)
                                         
                                 with liquidar_despesa_certificada.expect_popup() as popup_info:
                                     ponto_interrogacao.click()
                                     if robo_deve_parar:
-
+                                        liquidar_despesa_certificada.close()
                                         if book:
                                             verificar_panico_e_sair(book)
                                     selecionar_empenho = popup_info.value
@@ -822,7 +824,7 @@ else:
                                         liquidar_despesa_certificada.wait_for_load_state('networkidle', timeout=30000)
                                             
                                         if robo_deve_parar:
-
+                                            liquidar_despesa_certificada.close()
                                             if book:
                                                 verificar_panico_e_sair(book)
 
@@ -834,7 +836,7 @@ else:
                                         botao_confirmacao = liquidar_despesa_certificada.locator("#menun4").get_by_role("link")
                                         
                                         if robo_deve_parar:
-
+                                            liquidar_despesa_certificada.close()
                                             if book:
                                                 verificar_panico_e_sair(book)
                                             
@@ -843,6 +845,7 @@ else:
                                         botao_limpar = liquidar_despesa_certificada.get_by_role("link", name="Limpar a Tela")
                                             
                                         if robo_deve_parar:
+                                            liquidar_despesa_certificada.close()
                                             if book:
                                                 verificar_panico_e_sair(book)
                                 
