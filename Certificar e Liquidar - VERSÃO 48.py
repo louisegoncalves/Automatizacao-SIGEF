@@ -18,6 +18,7 @@
 from playwright.sync_api import sync_playwright
 import pyautogui
 import openpyxl
+import os
 import keyboard
 import time
 import pyperclip
@@ -89,6 +90,7 @@ while existe_planilha == False:
                 print("\nErro na planilha de backup.")
         except:
             print("\nErro na planilha de backup.")
+
 # =================================================================
 print('=================================================================')
 print('PROCEDIMENTO: CERTIFICAR E LIQUIDAR')
@@ -96,9 +98,6 @@ print('Versão 48 em 11/05/2026')
 print('Por: LOUISE-SESDEC')
 print('Github: https://github.com/louisegoncalves/Automatizacao-SIGEF')
 print('=================================================================')
-# =================================================================
-#SE QUISER DESATIVAR AQUELA JANELA DO COMEÇO PODE EXCLUIR ELA AQUI:
-pyautogui.alert(text='Procedimento: Certificar e liquidar. \n \nVersão 48 em 11/05/2026. \n \nPor: LOUISE-SESDEC', title='Início', button='OK')
 # =================================================================
 
 #FUNÇÃO QUE SERÁ CHAMADA PELA TECLA DE PANICO
@@ -123,8 +122,6 @@ tecla_de_panico = "Esc"
 keyboard.add_hotkey(tecla_de_panico, parar_execucao)
 print(f"\nPressione a tecla '{tecla_de_panico}' a qualquer momento para abortar com segurança.")
 
-pyautogui.confirm(text='Aperte OK quando o SIGEF estiver logado no depurador do Google Chrome', title='Depurador do Chrome' , buttons=['OK'])
-
 #PORTA DO DEPURADOR DO GOOGLE CHROME
 CHROME_DEBUG_URL = "http://localhost:9222"
 
@@ -140,7 +137,6 @@ else:
     linha = 2
 
 numero_de_operacoes = numero_de_operacoes - 1
-print("Planilha lida. São " + str(numero_de_operacoes) + " operações para executar.")
 
 if numero_de_operacoes == 0:
     print("Nenhuma operação para executar, encerrando.")
@@ -166,7 +162,7 @@ else:
             guia = janela.pages[0]
 
             for p in janela.pages:
-                if "SIGEF" in p.title():
+                if "SIGEF - Sistema Integrado de Planejamento e Gestão Fiscal" in p.title():
                     guia = p
                     break
             
@@ -182,9 +178,15 @@ else:
             #VERIFICAÇÃO DE PÂNICO:
             if robo_deve_parar:
                 verificar_panico_e_sair(book)
-            
+            #SE QUISER DESATIVAR AQUELA JANELA DO COMEÇO PODE EXCLUIR ELA AQUI:
+            pyautogui.alert(text='Procedimento: Certificar e liquidar. \n \nVersão 48 em 11/05/2026. \n \nPor: LOUISE-SESDEC', title='Início', button='OK')
+# =================================================================
+
+            os.system('cls' if os.name == 'nt' else 'clear')
             #INÍCIO                
             print("\nIniciando!")
+            print("\nPlanilha lida. São " + str(numero_de_operacoes) + " operações para executar.")
+
 
             #PESQUISANDO FUNCIONALIDADE NO SIGEF
             pesquisar_funcionalidades_sistema = frame.get_by_placeholder("Pesquisar funcionalidades do sistema...")
@@ -925,7 +927,6 @@ else:
                             else: 
                                 linha = linha + 1
                                 ug = gestao = processo = nome = cpf = valor = banco = agencia = conta = empenho = despesa_certificada = liquidacao = operacao = data = data_do_pagamento = agora = value_numero_cortado = 'None'
-                                print("Indo para o próximo...")
 
 liquidar_despesa_certificada.close()
 print("\nFim das liquidações.")
