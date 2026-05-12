@@ -90,10 +90,15 @@ while existe_planilha == False:
         except:
             print("\nErro na planilha de backup.")
 # =================================================================
-
+print('=================================================================')
+print('PROCEDIMENTO: CERTIFICAR E LIQUIDAR')
+print('Versão 48 em 11/05/2026')
+print('Por: LOUISE-SESDEC')
+print('Github: https://github.com/louisegoncalves/Automatizacao-SIGEF')
+print('=================================================================')
 # =================================================================
 #SE QUISER DESATIVAR AQUELA JANELA DO COMEÇO PODE EXCLUIR ELA AQUI:
-pyautogui.alert(text='Procedimento: Certificar e liquidar.', title='Início', button='OK')
+pyautogui.alert(text='Procedimento: Certificar e liquidar. \n \nVersão 48 em 11/05/2026. \n \nPor: LOUISE-SESDEC', title='Início', button='OK')
 # =================================================================
 
 #FUNÇÃO QUE SERÁ CHAMADA PELA TECLA DE PANICO
@@ -116,9 +121,8 @@ def verificar_panico_e_sair(workbook):
 #DEFINA SUA TECLA DE PÂNICO
 tecla_de_panico = "Esc" 
 keyboard.add_hotkey(tecla_de_panico, parar_execucao)
-print(f"\nRobô iniciado. Pressione a tecla '{tecla_de_panico}' a qualquer momento para abortar com seguranca.")
+print(f"\nPressione a tecla '{tecla_de_panico}' a qualquer momento para abortar com segurança.")
 
-#AQUI ELE VAI PEDIR PARA ABRIR O SIGEF PELO DEPURADOR DO GOOGLE
 pyautogui.confirm(text='Aperte OK quando o SIGEF estiver logado no depurador do Google Chrome', title='Depurador do Chrome' , buttons=['OK'])
 
 #PORTA DO DEPURADOR DO GOOGLE CHROME
@@ -146,9 +150,16 @@ else:
     with sync_playwright() as p:
 
             #CONECTAR AO NAVEGADOR JÁ ABERTO:
-            print(f"\nTentando se conectar ao Chrome na porta de depuração: {CHROME_DEBUG_URL}")
-            browser = p.chromium.connect_over_cdp(CHROME_DEBUG_URL)
-            print("\nConexão estabelecida com sucesso!")
+            browser_conectado = False
+            while browser_conectado == False:
+                print(f"\nTentando se conectar ao Chrome na porta de depuração: {CHROME_DEBUG_URL}")
+                try:
+                    browser = p.chromium.connect_over_cdp(CHROME_DEBUG_URL)
+                    print("\nConexão estabelecida com sucesso!")
+                    browser_conectado = True
+                except: 
+                    #AQUI ELE VAI PEDIR PARA ABRIR O SIGEF PELO DEPURADOR DO GOOGLE
+                    pyautogui.confirm(text='Não identifiquei o SIGEF aberto. \n \nAperte OK quando o SIGEF estiver logado no depurador do Google Chrome', title='Depurador do Chrome' , buttons=['OK'])
 
             #OBTER A PÁGINA QUE ESTÁ ABERTA:
             janela = browser.contexts[0]
