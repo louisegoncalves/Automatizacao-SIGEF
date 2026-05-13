@@ -1,13 +1,19 @@
+# =================================================================
 #OLÁ!
 #PROCEDIMENTO: PREPARAR PAGAMENTO;
+#VERSÃO 30 EM 13/05/2026;
 #POR: LOUISE-SESDEC;
 #ALTERAÇÕES NO CÓDIGO PODEM SER ACESSADAS NO MEU GITHUB: <https://github.com/louisegoncalves/Automatizacao-SIGEF>.
+# =================================================================
 
-#INSTRUÇÕES
-#ATENÇÃO: É OBRIGATÓRIO ABRIR O DEPURADOR DO GOOGLE CHROME PARA EXECUTAR ESSE CÓDIGO
+# =================================================================
+#INSTRUÇÕES:
+#ATENÇÃO: É OBRIGATÓRIO ABRIR O DEPURADOR DO GOOGLE CHROME PARA EXECUTAR ESSE CÓDIGO;
 #EXECUTE NO CMD: ""C:\Program Files\Google\Chrome\Application\chrome.exe" --remote-debugging-port=9222 --user-data-dir="C:\ChromeDebugProfile"
-#E LOGUE NO SIGEF
+#E LOGUE NO SIGEF.
+# =================================================================
 
+# =================================================================
 #BIBLIOTECAS UTILIZADAS:
 import openpyxl
 import pyautogui
@@ -19,6 +25,7 @@ import re
 import os
 from datetime import date
 from datetime import datetime
+# =================================================================
 
 #QUAL PLANILHA VAI SER UTILIZADA?
 planilha = "Pagamentos - voluntariar abril 2026.xlsx"
@@ -658,7 +665,7 @@ with sync_playwright() as p:
                         pp_despesa_empenhada.close()
                         verificar_panico_e_sair(book)
         else:
-            print("\nFim das preparações de Pagamento.")
+            print("\n[FIM DAS PREPARAÇÕES DE PAGAMENTO] Nenhuma despesa para preparar.")
 
 if book:
     book.close()
