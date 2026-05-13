@@ -28,7 +28,8 @@ from datetime import datetime
 # =================================================================
 
 #QUAL PLANILHA VAI SER UTILIZADA?
-planilha = "Pagamentos - voluntariar abril 2026.xlsx"
+planilha = "Pagamentos.xlsx"
+#planilha = "Pagamentos - voluntariar abril 2026.xlsx"
 
 #VARIÁVEIS IMPORTANTES
 robo_deve_parar = False
